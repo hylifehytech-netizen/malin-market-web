@@ -194,12 +194,6 @@ export default function MalinMarket() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f0fdf4', fontFamily: "'Kanit', sans-serif", color: '#164e63' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Mali:wght@400;600;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Kanit', sans-serif; }
-      `}</style>
-
       {/* ── HEADER ── */}
       <header style={{ background: 'linear-gradient(135deg,#064e3b 0%,#047857 55%,#059669 100%)', padding: '0 24px', boxShadow: '0 4px 20px rgba(6,95,70,.35)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0', flexWrap: 'wrap', gap: 12 }}>
