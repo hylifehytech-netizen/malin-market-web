@@ -1,119 +1,267 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-const MOCK_STALLS = [
-  { id: 'f1', stall_number: 'F-01', zone: 'FOOD', price: 300, status: 'AVAILABLE' },
-  { id: 'f2', stall_number: 'F-02', zone: 'FOOD', price: 300, status: 'AVAILABLE' },
-  { id: 'f3', stall_number: 'F-03', zone: 'FOOD', price: 300, status: 'BOOKED', bookedBy: 'สมชาย ขายของดี', phone: '081-234-5678', paymentType: 'PromptPay' },
-  { id: 'f4', stall_number: 'F-04', zone: 'FOOD', price: 300, status: 'PENDING', bookedBy: 'มะลิ บัวขาว', phone: '082-111-2222', paymentType: 'TrueMoney' },
-  { id: 'f5', stall_number: 'F-05', zone: 'FOOD', price: 300, status: 'AVAILABLE' },
-  { id: 'f6', stall_number: 'F-06', zone: 'FOOD', price: 300, status: 'AVAILABLE' },
-  { id: 'f7', stall_number: 'F-07', zone: 'FOOD', price: 300, status: 'MAINTENANCE' },
-  { id: 'f8', stall_number: 'F-08', zone: 'FOOD', price: 300, status: 'AVAILABLE' },
-  { id: 'b1', stall_number: 'B-01', zone: 'FASHION', price: 250, status: 'AVAILABLE' },
-  { id: 'b2', stall_number: 'B-02', zone: 'FASHION', price: 250, status: 'BOOKED', bookedBy: 'สุนิสา แฟชั่น', phone: '089-999-8888', paymentType: 'PromptPay' },
-  { id: 'b3', stall_number: 'B-03', zone: 'FASHION', price: 250, status: 'AVAILABLE' },
-  { id: 'b4', stall_number: 'B-04', zone: 'FASHION', price: 250, status: 'PENDING', bookedBy: 'วิชัย เสื้อผ้า', phone: '083-777-6666', paymentType: 'TrueMoney' },
-  { id: 'b5', stall_number: 'B-05', zone: 'FASHION', price: 250, status: 'AVAILABLE' },
-  { id: 'b6', stall_number: 'B-06', zone: 'FASHION', price: 250, status: 'AVAILABLE' },
-  { id: 'b7', stall_number: 'B-07', zone: 'FASHION', price: 250, status: 'AVAILABLE' },
-  { id: 'b8', stall_number: 'B-08', zone: 'FASHION', price: 250, status: 'BOOKED', bookedBy: 'นิดา เสื้อวินเทจ', phone: '085-333-4444', paymentType: 'PromptPay' },
-  { id: 'c1', stall_number: 'C-01', zone: 'GIFTSHOP', price: 200, status: 'AVAILABLE' },
-  { id: 'c2', stall_number: 'C-02', zone: 'GIFTSHOP', price: 200, status: 'BOOKED', bookedBy: 'พิมพ์ใจ ของขวัญ', phone: '086-555-4444', paymentType: 'PromptPay' },
-  { id: 'c3', stall_number: 'C-03', zone: 'GIFTSHOP', price: 200, status: 'AVAILABLE' },
-  { id: 'c4', stall_number: 'C-04', zone: 'GIFTSHOP', price: 200, status: 'MAINTENANCE' },
-  { id: 'c5', stall_number: 'C-05', zone: 'GIFTSHOP', price: 200, status: 'AVAILABLE' },
-  { id: 'c6', stall_number: 'C-06', zone: 'GIFTSHOP', price: 200, status: 'PENDING', bookedBy: 'อมรรัตน์ แฮนด์เมด', phone: '091-222-3333', paymentType: 'TrueMoney' },
+// Real coordinates representing the Malin Plaza DWG map in vector SVG coordinates (viewBox="0 0 850 550")
+const INITIAL_STALLS = [
+  // Zone 1 (Left - Rotated blocks)
+  { id: 'z1_1', stall_number: '1-01', zone: '1', price: 250, status: 'AVAILABLE', x: 25, y: 390, w: 26, h: 40, r: -22 },
+  { id: 'z1_2', stall_number: '1-02', zone: '1', price: 250, status: 'AVAILABLE', x: 50, y: 380, w: 26, h: 40, r: -22 },
+  { id: 'z1_3', stall_number: '1-03', zone: '1', price: 250, status: 'BOOKED', bookedBy: 'เก๋ แฟชั่น', phone: '081-111-2222', paymentType: 'PromptPay', x: 75, y: 370, w: 26, h: 40, r: -22 },
+  { id: 'z1_4', stall_number: '1-04', zone: '1', price: 250, status: 'AVAILABLE', x: 100, y: 360, w: 26, h: 40, r: -22 },
+  { id: 'z1_5', stall_number: '1-05', zone: '1', price: 250, status: 'PENDING', bookedBy: 'นัท เสื้อผ้า', phone: '082-222-3333', paymentType: 'TrueMoney', x: 125, y: 350, w: 26, h: 40, r: -22 },
+  
+  { id: 'z1_6', stall_number: '1-10', zone: '1', price: 250, status: 'AVAILABLE', x: 95, y: 475, w: 26, h: 40, r: -35 },
+  { id: 'z1_7', stall_number: '1-11', zone: '1', price: 250, status: 'AVAILABLE', x: 116, y: 460, w: 26, h: 40, r: -35 },
+  { id: 'z1_8', stall_number: '1-12', zone: '1', price: 250, status: 'BOOKED', bookedBy: 'มาลี เครื่องประดับ', phone: '083-333-4444', paymentType: 'PromptPay', x: 137, y: 445, w: 26, h: 40, r: -35 },
+
+  // Zone 2 (Center diagonal lane)
+  { id: 'z2_1', stall_number: '2-01', zone: '2', price: 300, status: 'AVAILABLE', x: 300, y: 360, w: 18, h: 36, r: 72 },
+  { id: 'z2_2', stall_number: '2-02', zone: '2', price: 300, status: 'AVAILABLE', x: 310, y: 330, w: 18, h: 36, r: 72 },
+  { id: 'z2_3', stall_number: '2-03', zone: '2', price: 300, status: 'BOOKED', bookedBy: 'เจ๊ดา ส้มตำ', phone: '084-444-5555', paymentType: 'PromptPay', x: 320, y: 300, w: 18, h: 36, r: 72 },
+  { id: 'z2_4', stall_number: '2-04', zone: '2', price: 300, status: 'AVAILABLE', x: 330, y: 270, w: 18, h: 36, r: 72 },
+
+  // Zone 3, 5, 6 (Center bottom diagonal blocks)
+  { id: 'z3_1', stall_number: '3-01', zone: '3', price: 200, status: 'AVAILABLE', x: 380, y: 470, w: 22, h: 32, r: -45 },
+  { id: 'z3_2', stall_number: '3-02', zone: '3', price: 200, status: 'PENDING', bookedBy: 'ชานมไข่มุก', phone: '085-555-6666', paymentType: 'TrueMoney', x: 400, y: 450, w: 22, h: 32, r: -45 },
+  { id: 'z5_1', stall_number: '5-01', zone: '5', price: 200, status: 'AVAILABLE', x: 440, y: 410, w: 22, h: 32, r: -45 },
+  { id: 'z5_2', stall_number: '5-02', zone: '5', price: 200, status: 'MAINTENANCE', x: 460, y: 390, w: 22, h: 32, r: -45 },
+  { id: 'z6_1', stall_number: '6-01', zone: '6', price: 180, status: 'AVAILABLE', x: 500, y: 350, w: 22, h: 32, r: -45 },
+  { id: 'z6_2', stall_number: '6-02', zone: '6', price: 180, status: 'AVAILABLE', x: 520, y: 330, w: 22, h: 32, r: -45 },
+
+  // Zone 8 (Souvenirs / Right bottom block)
+  { id: 'z8_1', stall_number: '8-01', zone: '8', price: 220, status: 'AVAILABLE', x: 530, y: 450, w: 24, h: 32, r: -15 },
+  { id: 'z8_2', stall_number: '8-02', zone: '8', price: 220, status: 'AVAILABLE', x: 560, y: 440, w: 24, h: 32, r: -15 },
+
+  // Zone 9 (Center horizontal top row)
+  { id: 'z9_1', stall_number: '9-01', zone: '9', price: 220, status: 'AVAILABLE', x: 450, y: 200, w: 24, h: 32, r: 8 },
+  { id: 'z9_2', stall_number: '9-02', zone: '9', price: 220, status: 'AVAILABLE', x: 476, y: 203, w: 24, h: 32, r: 8 },
+  { id: 'z9_3', stall_number: '9-03', zone: '9', price: 220, status: 'PENDING', bookedBy: 'อมรรัตน์ กิฟต์', phone: '086-666-7777', paymentType: 'TrueMoney', x: 502, y: 206, w: 24, h: 32, r: 8 },
+
+  // Zone 10 (Top center)
+  { id: 'z10_1', stall_number: '10-01', zone: '10', price: 280, status: 'AVAILABLE', x: 490, y: 145, w: 22, h: 28, r: 8 },
+  { id: 'z10_2', stall_number: '10-02', zone: '10', price: 280, status: 'BOOKED', bookedBy: 'โกโก้เข้มข้น', phone: '087-777-8888', paymentType: 'PromptPay', x: 512, y: 148, w: 22, h: 28, r: 8 },
+
+  // Zone 11 (Top horizontal long block)
+  { id: 'z11_1', stall_number: '11-01', zone: '11', price: 350, status: 'AVAILABLE', x: 530, y: 110, w: 20, h: 48, r: 8 },
+  { id: 'z11_2', stall_number: '11-02', zone: '11', price: 350, status: 'AVAILABLE', x: 550, y: 113, w: 20, h: 48, r: 8 },
+  { id: 'z11_3', stall_number: '11-03', zone: '11', price: 350, status: 'BOOKED', bookedBy: 'เป้ รองเท้า', phone: '088-888-9999', paymentType: 'PromptPay', x: 570, y: 116, w: 20, h: 48, r: 8 },
+
+  // Zone 12 (Far Right slanted corner)
+  { id: 'z12_1', stall_number: '12-01', zone: '12', price: 200, status: 'AVAILABLE', x: 740, y: 55, w: 24, h: 38, r: -35 },
+  { id: 'z12_2', stall_number: '12-02', zone: '12', price: 200, status: 'MAINTENANCE', x: 762, y: 40, w: 24, h: 38, r: -35 }
 ];
 
-const MOCK_BOOKINGS = MOCK_STALLS
-  .filter(s => s.status === 'PENDING' || s.status === 'BOOKED')
-  .map(s => ({
-    id: 'bk_' + s.id,
-    stall_number: s.stall_number,
-    vendor_name: s.bookedBy,
-    phone: s.phone,
-    booking_date: new Date().toISOString().split('T')[0],
-    status: s.status === 'BOOKED' ? 'APPROVED' : 'PENDING',
-    payment_type: s.paymentType,
-    amount: s.price,
-    slip_url: 'https://placehold.co/400x500/d1fae5/065f46?text=Payment+Slip',
-  }));
-
-// Color config per status
-const statusConfig = {
-  AVAILABLE:   { bg: '#d1fae5', border: '#10b981', text: '#065f46', dot: '#10b981', label: 'ว่าง' },
-  PENDING:     { bg: '#fef9c3', border: '#f59e0b', text: '#78350f', dot: '#f59e0b', label: 'รอตรวจ' },
-  BOOKED:      { bg: '#fee2e2', border: '#ef4444', text: '#7f1d1d', dot: '#ef4444', label: 'จองแล้ว' },
-  MAINTENANCE: { bg: '#f3f4f6', border: '#9ca3af', text: '#6b7280', dot: '#9ca3af', label: 'ปรับปรุง' },
+const dict = {
+  TH: {
+    title: 'ระบบจองล็อกออนไลน์ มาลิน พลาซ่า',
+    subtitle: 'โดยกลุ่มบริษัท ไฮไลฟ์ (Hylife Group) — แผนผังเวกเตอร์ SVG แบบเสรีมาร์เก็ต กดจองและเลือกโซนได้ทันที',
+    login: 'เข้าสู่ระบบสมาชิก',
+    register: 'สมัครสมาชิก',
+    logout: 'ออกจากระบบ',
+    langBtn: 'EN',
+    zone: 'เลือกโซน',
+    all: 'ทั้งหมด',
+    food: 'โซนอาหาร',
+    fashion: 'โซนแฟชั่น',
+    gift: 'กิฟต์ช็อป',
+    date: 'วันที่จอง',
+    statusAvailable: 'ว่าง',
+    statusPending: 'รอตรวจสลิป',
+    statusBooked: 'จองแล้ว',
+    statusMaintenance: 'ปรับปรุง',
+    statsAvailable: 'ล็อกว่าง',
+    statsPending: 'รอตรวจสอบ',
+    statsBooked: 'จองแล้ว',
+    statsOccupancy: 'อัตราเช่า',
+    mapTitle: 'แผนผังตลาด Malin Plaza (Seri Market Vector Style)',
+    mapSubtitle: 'คลิกเลือกล็อกสีต่างๆ บนแผนผังจำลอง เพื่อทำรายการจองหรือดูรายละเอียดล็อกทางแถบด้านขวา',
+    entrance: 'ทางเข้าหลัก (ถ.ห้วยแก้ว)',
+    exit: 'ทางออก (ฝั่ง มช.)',
+    pathway: 'ทางเดินหลัก',
+    parking: '🅿️ ที่จอดรถ',
+    wc: '🚻 ห้องน้ำ',
+    powerPanel: 'แผงควบคุมไฟ',
+    sink: 'อ่างล้างมือ',
+    viewDetails: 'ดูรายละเอียด',
+    rent: 'อัตราค่าเช่า',
+    selectedDate: 'วันที่เลือก',
+    close: 'ปิด',
+    bookNow: 'จองล็อกนี้ทันที',
+    bookingFormTitle: 'รายละเอียดจองล็อก',
+    fullName: 'ชื่อ-นามสกุลผู้จอง *',
+    phoneLabel: 'เบอร์โทรศัพท์มือถือ *',
+    citizenId: 'เลขบัตรประชาชน * (สำหรับสัญญากฎหมาย)',
+    pdpaNotice: '🔒 ข้อมูลได้รับการรักษาความปลอดภัยตามมาตรฐาน PDPA',
+    paymentMethod: 'ช่องทางการชำระเงิน',
+    cancel: 'ยกเลิก',
+    confirmBooking: 'ยืนยันส่งข้อมูลจอง',
+    errorFields: '❌ กรุณากรอกข้อมูลให้ครบถ้วน',
+    successBooking: '✅ ส่งข้อมูลคำขอจองสำเร็จ! รอเจ้าหน้าที่ตรวจสอบสลิป',
+    loadingBooking: '⏳ กำลังส่งข้อมูล...',
+    tabMap: '🗺️ แผนผังจองล็อก',
+    tabAdmin: '👮 ระบบเจ้าหน้าที่',
+    tabDashboard: '📊 รายงานผู้บริหาร',
+    adminPanelTitle: 'รายการรอยืนยันคำขอจอง',
+    noBookings: 'ไม่มีรายการจองที่รอการตรวจสอบ',
+    colStall: 'ล็อก',
+    colName: 'ชื่อผู้จอง',
+    colPhone: 'เบอร์โทร',
+    colDate: 'วันที่',
+    colAmount: 'ยอดชำระ',
+    colPayment: 'ช่องทาง',
+    colSlip: 'เอกสาร/สลิป',
+    colStatus: 'สถานะ',
+    colManage: 'จัดการ',
+    approve: 'อนุมัติ',
+    reject: 'ปฏิเสธ',
+    approvedLabel: '✅ อนุมัติแล้ว',
+    pendingLabel: '⏳ รอตรวจ',
+    rejectedLabel: '❌ ปฏิเสธ',
+    execSummary: 'รายงานข้อมูลสรุปสำหรับผู้บริหาร',
+    exportPdf: 'ดาวน์โหลด PDF',
+    estRevenue: 'รายได้ประมาณการ',
+    basedOnApproved: 'คำนวณจากล็อกที่จองสมบูรณ์แล้ว',
+    zoneStats: 'อัตราส่วนการเข้าเช่าแยกตามโซน',
+    stalls: 'ล็อก',
+    loginModalTitle: 'เข้าสู่ระบบ Malin Plaza',
+    loginPrompt: 'ระบุเบอร์โทรศัพท์เพื่อรับรหัส OTP',
+    getOtp: 'ขอรับรหัส OTP',
+    otpLabel: 'รหัส OTP (จำลองเป็น 123456)',
+    submitLogin: 'เข้าสู่ระบบ',
+    staffLoginLink: 'เข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ (Staff Login)',
+    userLoginLink: 'เข้าสู่ระบบสำหรับผู้เช่า (Tenant Login)',
+    staffUser: 'ชื่อบัญชีเจ้าหน้าที่',
+    staffPass: 'รหัสผ่าน',
+    loginError: '❌ ข้อมูลผู้ใช้งานไม่ถูกต้อง',
+    socialLogin: 'หรือเข้าใช้งานด้วยโซเชียลเน็ตเวิร์ก',
+    googleLogin: 'เข้าสู่ระบบด้วย Google',
+    facebookLogin: 'เข้าสู่ระบบด้วย Facebook',
+    clickStallInfo: 'กรุณาคลิกเลือกช่องล็อกบนผังด้านซ้ายเพื่อดูรายละเอียด',
+    sizeVal: '3x3 ม. (9 ตร.ม.)',
+    size: 'ขนาดพื้นที่'
+  },
+  EN: {
+    title: 'Malin Plaza Online Stall Booking',
+    subtitle: 'Managed by Hylife Group — Seri Market Vector SVG map with interactive layout',
+    login: 'Member Login',
+    register: 'Sign Up',
+    logout: 'Logout',
+    langBtn: 'TH',
+    zone: 'Select Zone',
+    all: 'All',
+    food: 'Food Zone',
+    fashion: 'Fashion Zone',
+    gift: 'Gift Zone',
+    date: 'Booking Date',
+    statusAvailable: 'Available',
+    statusPending: 'Pending Slip',
+    statusBooked: 'Booked',
+    statusMaintenance: 'Maintenance',
+    statsAvailable: 'Available',
+    statsPending: 'Pending Audit',
+    statsBooked: 'Booked',
+    statsOccupancy: 'Occupancy',
+    mapTitle: 'Malin Plaza Interactive Map Layout',
+    mapSubtitle: 'Click on any colored stall box directly in the layout plan to select and book',
+    entrance: 'Main Entrance (Huay Kaew Rd.)',
+    exit: 'Exit (CMU Side)',
+    pathway: 'Main Pathway',
+    parking: '🅿️ Parking Area',
+    wc: '🚻 WC',
+    powerPanel: 'Power Hub',
+    sink: 'Wash Basin',
+    viewDetails: 'Stall Details',
+    rent: 'Rental Rate',
+    selectedDate: 'Selected Date',
+    close: 'Close',
+    bookNow: 'Book Stall Now',
+    bookingFormTitle: 'Stall Registration Form',
+    fullName: 'Full Name *',
+    phoneLabel: 'Mobile Phone *',
+    citizenId: 'Citizen ID / Passport *',
+    pdpaNotice: '🔒 Data secured in compliance with PDPA standards',
+    paymentMethod: 'Payment Option',
+    cancel: 'Cancel',
+    confirmBooking: 'Confirm Booking Request',
+    errorFields: '❌ Please fill in all required fields',
+    successBooking: '✅ Booking submitted! Waiting for verification',
+    loadingBooking: '⏳ Submitting...',
+    tabMap: '🗺️ Interactive Map',
+    tabAdmin: '👮 Staff Verification Panel',
+    tabDashboard: '📊 Executive Summary',
+    adminPanelTitle: 'Pending Booking Approvals',
+    noBookings: 'No pending bookings found',
+    colStall: 'Stall',
+    colName: 'Tenant Name',
+    colPhone: 'Phone',
+    colDate: 'Date',
+    colAmount: 'Amount',
+    colPayment: 'Method',
+    colSlip: 'Slip File',
+    colStatus: 'Status',
+    colManage: 'Actions',
+    approve: 'Approve',
+    reject: 'Reject',
+    approvedLabel: '✅ Approved',
+    pendingLabel: '⏳ Pending',
+    rejectedLabel: '❌ Rejected',
+    execSummary: 'Executive Financial Summary & Occupancy Report',
+    exportPdf: 'Download PDF',
+    estRevenue: 'Estimated Revenue',
+    basedOnApproved: 'Based on approved leases',
+    zoneStats: 'Stall Occupancy Rates by Zone',
+    stalls: 'Stalls',
+    loginModalTitle: 'Log In to Malin Plaza Portal',
+    loginPrompt: 'Enter phone number to receive OTP',
+    getOtp: 'Request OTP',
+    otpLabel: 'OTP Code (Mock: 123456)',
+    submitLogin: 'Login',
+    staffLoginLink: 'Switch to Staff Login Account',
+    userLoginLink: 'Switch to Tenant Login',
+    staffUser: 'Staff Username',
+    staffPass: 'Password',
+    loginError: '❌ Invalid credentials',
+    socialLogin: 'Or sign in using social network providers',
+    googleLogin: 'Sign in with Google',
+    facebookLogin: 'Sign in with Facebook',
+    clickStallInfo: 'Please click on a stall box in the plan layout',
+    sizeVal: '3x3 m. (9 sq.m.)',
+    size: 'Stall Size'
+  }
 };
 
-// Single stall box component — looks like a physical booth on a map
-function StallBox({ stall, onClick }) {
-  const c = statusConfig[stall.status] || statusConfig.MAINTENANCE;
-  const clickable = stall.status !== 'MAINTENANCE';
-  const [hover, setHover] = useState(false);
-
-  return (
-    <div
-      onClick={() => clickable && onClick(stall)}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      title={`ล็อก ${stall.stall_number}${stall.bookedBy ? ' — ' + stall.bookedBy : ''}`}
-      style={{
-        background: c.bg,
-        border: `2px solid ${hover && clickable ? '#065f46' : c.border}`,
-        borderRadius: 10,
-        padding: '8px 4px 6px',
-        cursor: clickable ? 'pointer' : 'not-allowed',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 3,
-        transition: 'all 0.15s ease',
-        transform: hover && clickable ? 'translateY(-3px) scale(1.06)' : 'none',
-        boxShadow: hover && clickable
-          ? `0 6px 18px ${c.border}55`
-          : `0 1px 4px rgba(0,0,0,0.08)`,
-        userSelect: 'none',
-        minWidth: 60,
-      }}
-    >
-      {/* Status dot */}
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: c.dot, boxShadow: `0 0 0 2px ${c.bg}, 0 0 0 3px ${c.dot}55` }} />
-      {/* Number */}
-      <div style={{ fontFamily: "'Mali', cursive", fontWeight: 800, fontSize: 13, color: c.text, lineHeight: 1.1 }}>
-        {stall.stall_number}
-      </div>
-      {/* Status badge */}
-      <div style={{ fontSize: 9, fontWeight: 700, background: 'rgba(255,255,255,0.65)', color: c.text, padding: '1px 5px', borderRadius: 6 }}>
-        {c.label}
-      </div>
-      {/* Vendor name if booked */}
-      {stall.bookedBy && (
-        <div style={{ fontSize: 8.5, color: c.text, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', opacity: 0.85 }}>
-          {stall.bookedBy.split(' ')[0]}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function MalinMarket() {
+  const [lang, setLang] = useState('TH');
+  const t = dict[lang];
+
+  // States
+  const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('vendor');
   const [selectedZone, setSelectedZone] = useState('ALL');
+  const [selectedStall, setSelectedStall] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [stalls, setStalls] = useState(MOCK_STALLS);
+  const [stalls, setStalls] = useState(INITIAL_STALLS);
   const [bookings, setBookings] = useState(MOCK_BOOKINGS);
-  const [detailStall, setDetailStall] = useState(null);
-  const [bookingForm, setBookingForm] = useState(null);
+  const [zoomScale, setZoomScale] = useState(1.0);
+
+  // Modals
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isStaffLogin, setIsStaffLogin] = useState(false);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+
+  // Auth Forms
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginOtp, setLoginOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [staffUser, setStaffUser] = useState('');
+  const [staffPass, setStaffPass] = useState('');
+  const [loginErrorMsg, setLoginErrorMsg] = useState('');
+
+  // Booking Forms
   const [form, setForm] = useState({ name: '', phone: '', citizenId: '', paymentType: 'PROMPTPAY' });
   const [formMsg, setFormMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const filtered = stalls.filter(s => selectedZone === 'ALL' || s.zone === selectedZone);
-  const foodStalls = filtered.filter(s => s.zone === 'FOOD');
-  const fashionStalls = filtered.filter(s => s.zone === 'FASHION');
-  const giftStalls = filtered.filter(s => s.zone === 'GIFTSHOP');
+  const filteredStalls = stalls.filter(s => selectedZone === 'ALL' || s.zone === selectedZone);
 
   const totalStalls = stalls.length;
   const bookedCount = stalls.filter(s => s.status === 'BOOKED').length;
@@ -123,33 +271,44 @@ export default function MalinMarket() {
   const revenue = stalls.filter(s => s.status === 'BOOKED').reduce((sum, s) => sum + s.price, 0);
 
   const handleStallClick = (stall) => {
-    setDetailStall(stall);
+    setSelectedStall(stall);
     setFormMsg('');
   };
 
-  const handleBook = async () => {
+  const handleZoom = (type) => {
+    if (type === 'in') setZoomScale(prev => Math.min(prev + 0.15, 1.8));
+    if (type === 'out') setZoomScale(prev => Math.max(prev - 0.15, 0.65));
+    if (type === 'reset') setZoomScale(1.0);
+  };
+
+  const handleBook = async (e) => {
+    e.preventDefault();
     if (!form.name || !form.phone || !form.citizenId) {
-      setFormMsg('❌ กรุณากรอกข้อมูลให้ครบ');
+      setFormMsg(t.errorFields);
       return;
     }
     setLoading(true);
     await new Promise(r => setTimeout(r, 900));
-    const updated = { ...bookingForm, status: 'PENDING', bookedBy: form.name, phone: form.phone, paymentType: form.paymentType };
-    setStalls(prev => prev.map(s => s.id === bookingForm.id ? updated : s));
+    const updated = { ...selectedStall, status: 'PENDING', bookedBy: form.name, phone: form.phone, paymentType: form.paymentType };
+    setStalls(prev => prev.map(s => s.id === selectedStall.id ? updated : s));
     setBookings(prev => [...prev, {
       id: 'bk_' + Date.now(),
-      stall_number: bookingForm.stall_number,
+      stall_number: selectedStall.stall_number,
       vendor_name: form.name,
       phone: form.phone,
       booking_date: selectedDate,
       status: 'PENDING',
       payment_type: form.paymentType,
-      amount: bookingForm.price,
-      slip_url: 'https://placehold.co/400x500/fef9c3/92400e?text=Payment+Slip',
+      amount: selectedStall.price,
+      slip_url: 'https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip',
     }]);
-    setFormMsg('✅ ส่งคำขอจองสำเร็จ! รอ Admin ตรวจสอบสลิป');
+    setFormMsg(t.successBooking);
     setLoading(false);
-    setTimeout(() => { setBookingForm(null); setDetailStall(null); setForm({ name: '', phone: '', citizenId: '', paymentType: 'PROMPTPAY' }); }, 1600);
+    setTimeout(() => {
+      setShowBookingForm(false);
+      setSelectedStall(null);
+      setForm({ name: '', phone: '', citizenId: '', paymentType: 'PROMPTPAY' });
+    }, 1800);
   };
 
   const handleApprove = (id, status) => {
@@ -163,490 +322,538 @@ export default function MalinMarket() {
     }
   };
 
-  // =========================================================
-  //  Sub-components
-  // =========================================================
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    setLoginErrorMsg('');
+    if (isStaffLogin) {
+      if (staffUser.toLowerCase() === 'admin' && staffPass === 'admin') {
+        setCurrentUser({ username: 'Admin Hylife', role: 'ADMIN' });
+        setShowLoginModal(false);
+        setActiveTab('admin');
+      } else if (staffUser.toLowerCase() === 'bod' && staffPass === 'bod') {
+        setCurrentUser({ username: 'Director Hylife', role: 'BOD' });
+        setShowLoginModal(false);
+        setActiveTab('dashboard');
+      } else {
+        setLoginErrorMsg(t.loginError);
+      }
+    } else {
+      if (loginPhone.length >= 9 && loginOtp === '123456') {
+        setCurrentUser({ username: loginPhone, role: 'USER' });
+        setShowLoginModal(false);
+      } else {
+        setLoginErrorMsg(t.loginError);
+      }
+    }
+  };
 
-  // Zone label badge
-  const ZoneBadge = ({ text, price, accent }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-      <span style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 14, color: accent }}>{text}</span>
-      <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.7)', color: accent, padding: '2px 10px', borderRadius: 9999, border: `1px solid ${accent}44`, fontWeight: 700 }}>{price}</span>
-    </div>
-  );
+  const handleSocialLogin = (platform) => {
+    setCurrentUser({ username: `${platform} User`, role: 'USER' });
+    setShowLoginModal(false);
+  };
 
-  // Dashed pathway line
-  const PathH = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px' }}>
-      <div style={{ height: 2, flex: 1, background: 'repeating-linear-gradient(90deg,#6ee7b7 0,#6ee7b7 8px,transparent 8px,transparent 16px)' }} />
-      <span style={{ fontSize: 10, fontWeight: 700, color: '#059669', background: '#fff', padding: '2px 10px', borderRadius: 9999, border: '1px solid #a7f3d0', whiteSpace: 'nowrap' }}>↔ ทางเดินหลัก</span>
-      <div style={{ height: 2, flex: 1, background: 'repeating-linear-gradient(90deg,#6ee7b7 0,#6ee7b7 8px,transparent 8px,transparent 16px)' }} />
-    </div>
-  );
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setActiveTab('vendor');
+    setLoginPhone('');
+    setLoginOtp('');
+    setOtpSent(false);
+    setStaffUser('');
+    setStaffPass('');
+  };
 
-  const PathV = () => (
-    <div style={{ width: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <div style={{ width: 2, flex: 1, background: 'repeating-linear-gradient(180deg,#6ee7b7 0,#6ee7b7 8px,transparent 8px,transparent 16px)' }} />
-      <span style={{ fontSize: 8, fontWeight: 700, color: '#059669', writingMode: 'vertical-rl', letterSpacing: 1 }}>ทางเดิน</span>
-      <div style={{ width: 2, flex: 1, background: 'repeating-linear-gradient(180deg,#6ee7b7 0,#6ee7b7 8px,transparent 8px,transparent 16px)' }} />
-    </div>
-  );
+  // Color config matching Seri Market (Clean solid fills, clean labels)
+  const statusColors = {
+    AVAILABLE:   { fill: '#F59E0B', stroke: '#D97706', text: '#FFFFFF' }, // Golden/Orange available
+    PENDING:     { fill: '#FEF08A', stroke: '#F59E0B', text: '#78350F' }, // Light gold pending
+    BOOKED:      { fill: '#A7F3D0', stroke: '#10B981', text: '#064E3B' }, // Green booked
+    MAINTENANCE: { fill: '#E2E8F0', stroke: '#94A3B8', text: '#475569' }
+  };
+
+  const zonesList = [
+    { id: 'ALL', label: t.allZones },
+    { id: '1', label: 'โซน 1' },
+    { id: '2', label: 'โซน 2' },
+    { id: '3', label: 'โซน 3' },
+    { id: '9', label: 'โซน 9' },
+    { id: '10', label: 'โซน 10' },
+    { id: '11', label: 'โซน 11' },
+    { id: '12', label: 'โซน 12' }
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0fdf4', fontFamily: "'Kanit', sans-serif", color: '#164e63' }}>
-      {/* ── HEADER ── */}
-      <header style={{ background: 'linear-gradient(135deg,#064e3b 0%,#047857 55%,#059669 100%)', padding: '0 24px', boxShadow: '0 4px 20px rgba(6,95,70,.35)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 0', flexWrap: 'wrap', gap: 12 }}>
+    <div style={{ minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Kanit', sans-serif", color: '#1E293B' }}>
+      
+      {/* ── TOP NAV ── */}
+      <header style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 90 }}>
+        <div style={{ maxWidth: 1250, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', flexWrap: 'wrap', gap: 10 }}>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ background: '#fbbf24', borderRadius: 14, padding: '8px 10px', fontSize: 26, lineHeight: 1, boxShadow: '0 3px 10px rgba(251,191,36,.5)' }}>🎪</div>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: '#0A3A2F', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontWeight: 800 }}>M</div>
             <div>
-              <div style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 21, color: '#fef9c3' }}>กาดมาลิน พลาซ่า มช.</div>
-              <div style={{ fontSize: 11, color: '#6ee7b7', marginTop: 1 }}>Malin Market Chiang Mai · ผังตลาดและระบบจองล็อกออนไลน์</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#0A3A2F' }}>Malin Plaza</div>
+              <div style={{ fontSize: 10, color: '#64748B' }}>Hylife Group Portal</div>
             </div>
           </div>
-          <nav style={{ display: 'flex', background: 'rgba(0,0,0,.25)', borderRadius: 14, padding: 4, gap: 2 }}>
-            {[
-              { id: 'vendor', label: '🗺️ ผังจองล็อก' },
-              { id: 'admin', label: '👮 Admin อนุมัติสลิป' },
-              { id: 'dashboard', label: '📊 Executive Dashboard' },
-            ].map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-                padding: '8px 16px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'all .2s',
-                background: activeTab === t.id ? '#fbbf24' : 'transparent',
-                color: activeTab === t.id ? '#064e3b' : '#a7f3d0',
-              }}>{t.label}</button>
-            ))}
-          </nav>
-        </div>
-      </header>
 
-      {/* ── MAIN ── */}
-      <main style={{ maxWidth: 1140, margin: '0 auto', padding: '28px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setLang(l => l === 'TH' ? 'EN' : 'TH')} style={{
+              background: 'none', border: '1px solid #CBD5E1', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#475569'
+            }}>
+              {t.langBtn}
+            </button>
 
-        {/* ══════════ TAB: VENDOR ══════════ */}
-        {activeTab === 'vendor' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-            {/* Filter bar */}
-            <div style={{ background: '#fff', borderRadius: 18, border: '1.5px solid #d1fae5', padding: '16px 20px', boxShadow: '0 2px 12px rgba(16,185,129,.06)', display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 600, color: '#047857', fontSize: 13 }}>เลือกโซน:</span>
-                {[
-                  { id: 'ALL', label: 'ทั้งหมด' },
-                  { id: 'FOOD', label: '🍜 อาหาร' },
-                  { id: 'FASHION', label: '👗 แฟชั่น' },
-                  { id: 'GIFTSHOP', label: '🎁 กิฟต์ช็อป' },
-                ].map(z => (
-                  <button key={z.id} onClick={() => setSelectedZone(z.id)} style={{
-                    padding: '6px 14px', borderRadius: 20, border: '1.5px solid', cursor: 'pointer', fontSize: 12, fontWeight: 600, transition: 'all .15s',
-                    background: selectedZone === z.id ? '#059669' : '#f0fdf4',
-                    borderColor: selectedZone === z.id ? '#059669' : '#6ee7b7',
-                    color: selectedZone === z.id ? '#fff' : '#047857',
-                  }}>{z.label}</button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
-                <span style={{ fontWeight: 600, color: '#047857' }}>วันที่จอง:</span>
-                <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-                  style={{ padding: '6px 12px', borderRadius: 10, border: '1.5px solid #6ee7b7', background: '#f0fdf4', color: '#065f46', fontSize: 12 }} />
-              </div>
-              <div style={{ display: 'flex', gap: 14, fontSize: 11, fontWeight: 600, flexWrap: 'wrap' }}>
-                {[['#10b981','ว่าง'],['#f59e0b','รอตรวจสลิป'],['#ef4444','จองแล้ว'],['#9ca3af','ปรับปรุง']].map(([col, label]) => (
-                  <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: col, display: 'inline-block', border: `2px solid ${col}66` }} />
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Stats mini-bar */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 10 }}>
-              {[
-                { label: 'ว่าง', count: availableCount, col: '#059669', bg: '#d1fae5' },
-                { label: 'รอตรวจสลิป', count: pendingCount, col: '#d97706', bg: '#fef9c3' },
-                { label: 'จองแล้ว', count: bookedCount, col: '#dc2626', bg: '#fee2e2' },
-                { label: 'Occupancy', count: occupancy + '%', col: '#0891b2', bg: '#e0f2fe' },
-              ].map(s => (
-                <div key={s.label} style={{ background: s.bg, border: `1.5px solid ${s.col}33`, borderRadius: 14, padding: '10px 14px', textAlign: 'center' }}>
-                  <div style={{ fontFamily: "'Mali', cursive", fontWeight: 800, fontSize: 22, color: s.col }}>{s.count}</div>
-                  <div style={{ fontSize: 10, color: s.col, fontWeight: 600 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* ===== THE FLOOR PLAN MAP ===== */}
-            <div style={{ background: '#fff', borderRadius: 22, border: '1.5px solid #d1fae5', padding: '22px 24px', boxShadow: '0 2px 16px rgba(16,185,129,.08)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #ecfdf5', flexWrap: 'wrap', gap: 8 }}>
-                <div>
-                  <h2 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 19, color: '#065f46' }}>
-                    🗺️ แผนผังตลาดมาลิน — คลิกที่ช่องล็อกเพื่อดูรายละเอียดหรือจอง
-                  </h2>
-                  <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 3 }}>
-                    แต่ละช่องคือล็อกขายของในตลาด · สีแสดงสถานะปัจจุบัน · คลิกเพื่อดูผู้จองหรือเปิดฟอร์มจองได้ทันที
-                  </p>
-                </div>
-                <div style={{ background: '#fef9c3', border: '1px solid #fbbf24', borderRadius: 12, padding: '5px 14px', fontSize: 11, fontWeight: 700, color: '#92400e' }}>
-                  ✨ อัปเดต Real-time
-                </div>
-              </div>
-
-              {/* Scrollable map wrapper */}
-              <div style={{ overflowX: 'auto', overflowY: 'visible' }}>
-                <div style={{
-                  minWidth: 700,
-                  background: '#e8f5e9',
-                  border: '2.5px solid #6ee7b7',
-                  borderRadius: 18,
-                  padding: '20px 20px 16px',
-                  backgroundImage: `
-                    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(16,185,129,.05) 39px,rgba(16,185,129,.05) 40px),
-                    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(16,185,129,.05) 39px,rgba(16,185,129,.05) 40px)
-                  `,
-                }}>
-
-                  {/* ── Entrance / Exit top bar ── */}
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 10 }}>
-                    <div style={{ background: '#fbbf24', color: '#064e3b', padding: '5px 18px', borderRadius: 9999, fontWeight: 800, fontSize: 12, boxShadow: '0 2px 8px rgba(251,191,36,.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      🚪 ทางเข้าหลัก (ถ.ห้วยแก้ว)
-                    </div>
-                    <div style={{ flex: 1, height: 2, background: 'repeating-linear-gradient(90deg,#fbbf24 0,#fbbf24 8px,transparent 8px,transparent 16px)' }} />
-                    <div style={{ background: '#f3f4f6', color: '#374151', padding: '5px 18px', borderRadius: 9999, fontWeight: 600, fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      🚶 ทางออก (ฝั่ง มช.)
-                    </div>
-                  </div>
-
-                  {/* ── Top two zones side by side ── */}
-                  <div style={{ display: 'flex', gap: 0, alignItems: 'stretch' }}>
-
-                    {/* FOOD ZONE */}
-                    {(selectedZone === 'ALL' || selectedZone === 'FOOD') && (
-                      <div style={{
-                        flex: '0 0 auto',
-                        width: '55%',
-                        background: 'rgba(209,250,229,0.9)',
-                        border: '2px solid #6ee7b7',
-                        borderRadius: '14px 0 0 14px',
-                        padding: '14px 16px',
-                      }}>
-                        <ZoneBadge text="🍜 โซนอาหารและเครื่องดื่ม (Food & Beverage)" price="฿300/วัน" accent="#047857" />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                          {foodStalls.map(s => <StallBox key={s.id} stall={s} onClick={handleStallClick} />)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Vertical pathway between food and gift */}
-                    {selectedZone === 'ALL' && <PathV />}
-
-                    {/* GIFTSHOP ZONE */}
-                    {(selectedZone === 'ALL' || selectedZone === 'GIFTSHOP') && (
-                      <div style={{
-                        flex: 1,
-                        background: 'rgba(254,243,199,0.9)',
-                        border: '2px solid #fcd34d',
-                        borderRadius: selectedZone === 'ALL' ? '0 14px 14px 0' : 14,
-                        padding: '14px 16px',
-                      }}>
-                        <ZoneBadge text="🎁 โซนกิฟต์ช็อป & แฮนด์เมด" price="฿200/วัน" accent="#92400e" />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                          {giftStalls.map(s => <StallBox key={s.id} stall={s} onClick={handleStallClick} />)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ── Horizontal pathway ── */}
-                  {(selectedZone === 'ALL') && (
-                    <div style={{ margin: '10px 0' }}>
-                      <PathH />
-                    </div>
-                  )}
-
-                  {/* ── FASHION ZONE (full width bottom) ── */}
-                  {(selectedZone === 'ALL' || selectedZone === 'FASHION') && (
-                    <div style={{
-                      background: 'rgba(237,233,254,0.9)',
-                      border: '2px solid #c4b5fd',
-                      borderRadius: 14,
-                      padding: '14px 16px',
-                    }}>
-                      <ZoneBadge text="👗 โซนเสื้อผ้าและแฟชั่น (Fashion Street)" price="฿250/วัน" accent="#5b21b6" />
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 8 }}>
-                        {fashionStalls.map(s => <StallBox key={s.id} stall={s} onClick={handleStallClick} />)}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Bottom facilities row ── */}
-                  <div style={{ display: 'flex', gap: 10, marginTop: 14, fontSize: 11, color: '#6b7280', flexWrap: 'wrap' }}>
-                    {['🅿️ ที่จอดรถ (Parking)', '🚻 ห้องน้ำ (WC)', '💡 แผงควบคุมไฟ', '🍶 จุดล้างมือ'].map(f => (
-                      <div key={f} style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid #d1d5db', borderRadius: 10, padding: '4px 12px' }}>{f}</div>
-                    ))}
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════ TAB: ADMIN ══════════ */}
-        {activeTab === 'admin' && (
-          <div style={{ background: '#fff', borderRadius: 22, border: '1.5px solid #d1fae5', padding: '24px', boxShadow: '0 2px 16px rgba(16,185,129,.06)' }}>
-            <h2 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 19, color: '#065f46', marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid #ecfdf5' }}>
-              👮 ระบบอนุมัติสลิปโอนเงิน (Admin Verification Panel)
-            </h2>
-            {bookings.length === 0 ? (
-              <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px 0' }}>ไม่มีรายการจองที่รอตรวจสอบ</p>
+            {!currentUser ? (
+              <button onClick={() => { setIsStaffLogin(false); setLoginErrorMsg(''); setShowLoginModal(true); }} style={{
+                background: '#0A3A2F', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+              }}>
+                {t.login}
+              </button>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ background: '#f0fdf4', borderBottom: '1.5px solid #d1fae5' }}>
-                      {['ล็อก','ชื่อแม่ค้า/พ่อค้า','เบอร์โทร','วันที่','ยอดชำระ','ช่องทาง','สลิป','สถานะ','จัดการ'].map(h => (
-                        <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: '#047857', fontWeight: 700 }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.map(b => (
-                      <tr key={b.id} style={{ borderBottom: '1px solid #f0fdf4' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <td style={{ padding: '10px 12px', fontWeight: 800, color: '#059669' }}>{b.stall_number}</td>
-                        <td style={{ padding: '10px 12px', fontWeight: 500 }}>{b.vendor_name}</td>
-                        <td style={{ padding: '10px 12px', color: '#374151' }}>{b.phone}</td>
-                        <td style={{ padding: '10px 12px', color: '#6b7280' }}>{b.booking_date}</td>
-                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#d97706' }}>฿{b.amount}</td>
-                        <td style={{ padding: '10px 12px' }}>
-                          <span style={{ background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 700 }}>{b.payment_type}</span>
-                        </td>
-                        <td style={{ padding: '10px 12px' }}>
-                          <a href={b.slip_url} target="_blank" rel="noreferrer" style={{ color: '#0ea5e9', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>🖼️ ดูสลิป</a>
-                        </td>
-                        <td style={{ padding: '10px 12px' }}>
-                          <span style={{
-                            background: b.status === 'APPROVED' ? '#d1fae5' : b.status === 'PENDING' ? '#fef9c3' : '#fee2e2',
-                            color: b.status === 'APPROVED' ? '#065f46' : b.status === 'PENDING' ? '#92400e' : '#7f1d1d',
-                            padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700
-                          }}>
-                            {b.status === 'APPROVED' ? '✅ อนุมัติแล้ว' : b.status === 'PENDING' ? '⏳ รอตรวจ' : '❌ ปฏิเสธ'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 12px' }}>
-                          {b.status === 'PENDING' && (
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              <button onClick={() => handleApprove(b.id, 'APPROVED')} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>✅ อนุมัติ</button>
-                              <button onClick={() => handleApprove(b.id, 'REJECTED')} style={{ background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>❌ ปฏิเสธ</button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>👤 {currentUser.username}</span>
+                <button onClick={handleLogout} style={{
+                  background: 'none', border: '1px solid #FCA5A5', color: '#E11D48', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer'
+                }}>
+                  {t.logout}
+                </button>
               </div>
             )}
           </div>
-        )}
 
-        {/* ══════════ TAB: DASHBOARD ══════════ */}
-        {activeTab === 'dashboard' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 19, color: '#065f46' }}>📈 Executive Summary Dashboard</h2>
-              <button onClick={() => window.print()} style={{ background: '#fbbf24', color: '#064e3b', border: 'none', borderRadius: 12, padding: '9px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 2px 8px rgba(251,191,36,.35)' }}>
-                📄 Export PDF Report
-              </button>
-            </div>
+        </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
-              {[
-                { label: 'Occupancy Rate', value: occupancy + '%', sub: 'อัตราการครองพื้นที่', col: '#059669', bg: '#d1fae5' },
-                { label: 'รายได้ประมาณการ', value: '฿' + revenue.toLocaleString(), sub: 'จากล็อกที่อนุมัติแล้ว', col: '#d97706', bg: '#fef9c3' },
-                { label: 'ล็อกที่จองแล้ว', value: bookedCount + '/' + totalStalls, sub: 'ล็อก (Real-time)', col: '#0891b2', bg: '#e0f2fe' },
-              ].map(card => (
-                <div key={card.label} style={{ background: '#fff', border: `1.5px solid ${card.col}22`, borderRadius: 18, padding: '22px 20px', boxShadow: '0 2px 12px rgba(0,0,0,.05)' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: card.col, marginBottom: 6 }}>{card.label}</div>
-                  <div style={{ fontFamily: "'Mali', cursive", fontSize: 32, fontWeight: 800, color: card.col }}>{card.value}</div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>{card.sub}</div>
-                  {card.label === 'Occupancy Rate' && (
-                    <div style={{ marginTop: 10, background: '#f0fdf4', borderRadius: 9999, height: 8, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: occupancy + '%', background: 'linear-gradient(90deg,#10b981,#34d399)', borderRadius: 9999 }} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+        {currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'BOD') && (
+          <div style={{ background: '#F8FAFC', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
+            <div style={{ maxWidth: 1250, margin: '0 auto', display: 'flex', gap: 8, padding: '6px 20px' }}>
+              <button onClick={() => setActiveTab('vendor')} style={{
+                background: activeTab === 'vendor' ? '#0A3A2F' : 'transparent',
+                color: activeTab === 'vendor' ? '#FFFFFF' : '#475569',
+                border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+              }}>{t.tabMap}</button>
 
-            <div style={{ background: '#fff', border: '1.5px solid #d1fae5', borderRadius: 18, padding: '22px 24px', boxShadow: '0 2px 12px rgba(16,185,129,.06)' }}>
-              <h3 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 16, color: '#065f46', marginBottom: 18 }}>📊 สถิติแยกรายโซน</h3>
-              {[
-                { zone: 'FOOD', label: '🍜 โซนอาหาร' },
-                { zone: 'FASHION', label: '👗 โซนแฟชั่น' },
-                { zone: 'GIFTSHOP', label: '🎁 โซนกิฟต์ช็อป' },
-              ].map(({ zone, label }) => {
-                const total = stalls.filter(s => s.zone === zone && s.status !== 'MAINTENANCE').length;
-                const booked = stalls.filter(s => s.zone === zone && s.status === 'BOOKED').length;
-                const pct = total > 0 ? Math.round((booked / total) * 100) : 0;
-                return (
-                  <div key={zone} style={{ marginBottom: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                      <span style={{ color: '#065f46' }}>{label}</span>
-                      <span style={{ color: '#6b7280' }}>{booked}/{total} ล็อก ({pct}%)</span>
-                    </div>
-                    <div style={{ background: '#f0fdf4', borderRadius: 9999, height: 10, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: pct + '%', background: 'linear-gradient(90deg,#10b981,#34d399)', borderRadius: 9999, transition: 'width .5s' }} />
-                    </div>
-                  </div>
-                );
-              })}
+              {currentUser.role === 'ADMIN' && (
+                <button onClick={() => setActiveTab('admin')} style={{
+                  background: activeTab === 'admin' ? '#0A3A2F' : 'transparent',
+                  color: activeTab === 'admin' ? '#FFFFFF' : '#475569',
+                  border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                }}>{t.tabAdmin}</button>
+              )}
+
+              <button onClick={() => setActiveTab('dashboard')} style={{
+                background: activeTab === 'dashboard' ? '#0A3A2F' : 'transparent',
+                color: activeTab === 'dashboard' ? '#FFFFFF' : '#475569',
+                border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+              }}>{t.tabDashboard}</button>
             </div>
           </div>
         )}
-      </main>
+      </header>
 
-      {/* ── POPUP: STALL DETAIL ── */}
-      {detailStall && !bookingForm && (
-        <div onClick={() => setDetailStall(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,78,59,.4)', backdropFilter: 'blur(5px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 24, padding: 28, maxWidth: 400, width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,.2)', border: '1.5px solid #d1fae5' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #ecfdf5' }}>
-              <h3 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 18, color: '#065f46' }}>
-                📍 ล็อก {detailStall.stall_number}
-              </h3>
-              <button onClick={() => setDetailStall(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#9ca3af', lineHeight: 1 }}>✕</button>
+      {/* ── MAIN CONTENT ── */}
+      <main style={{ maxWidth: 1250, margin: '0 auto', padding: '24px 20px' }}>
+        
+        {activeTab === 'vendor' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            
+            {/* Header banner */}
+            <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A3A2F', margin: '0 0 8px' }}>{t.title}</h2>
+              <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5, margin: 0 }}>{t.subtitle}</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+            {/* Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               {[
-                { label: 'โซนสินค้า', value: detailStall.zone === 'FOOD' ? '🍜 อาหาร' : detailStall.zone === 'FASHION' ? '👗 แฟชั่น' : '🎁 กิฟต์ช็อป' },
-                { label: 'ค่าเช่า', value: `฿${detailStall.price} / วัน` },
-                { label: 'วันที่เลือก', value: selectedDate },
-              ].map(r => (
-                <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', background: '#f0fdf4', borderRadius: 10, padding: '8px 14px' }}>
-                  <span style={{ color: '#6b7280' }}>{r.label}</span>
-                  <span style={{ fontWeight: 700, color: '#065f46' }}>{r.value}</span>
+                { label: t.totalStalls, val: totalStalls },
+                { label: t.statsAvailable, val: availableCount, col: '#D97706' },
+                { label: t.statsBooked, val: bookedCount, col: '#10B981' },
+                { label: t.statsOccupancy, val: occupancy + '%' }
+              ].map((m, idx) => (
+                <div key={idx} style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: '12px 16px' }}>
+                  <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{m.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: m.col || '#1E293B', marginTop: 4 }}>{m.val}</div>
                 </div>
               ))}
-
-              {/* Status detail block */}
-              {detailStall.status === 'AVAILABLE' && (
-                <div style={{ background: '#d1fae5', borderRadius: 12, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <span style={{ fontSize: 22 }}>🟢</span>
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#065f46', fontSize: 14 }}>ล็อกว่าง พร้อมรับจองทันที</div>
-                    <div style={{ fontSize: 11, color: '#059669', marginTop: 2 }}>กดปุ่มด้านล่างเพื่อจองล็อกนี้</div>
-                  </div>
-                </div>
-              )}
-              {detailStall.status === 'PENDING' && (
-                <div style={{ background: '#fef9c3', borderRadius: 12, padding: '12px 14px', fontSize: 12 }}>
-                  <div style={{ fontWeight: 700, color: '#92400e', marginBottom: 8, fontSize: 13 }}>🟡 มีผู้กำลังรอชำระ / รอตรวจสลิป</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, color: '#374151' }}>
-                    <div>👤 ผู้จอง: <strong>{detailStall.bookedBy}</strong></div>
-                    <div>📞 เบอร์โทร: {detailStall.phone}</div>
-                    <div>💳 ชำระผ่าน: {detailStall.paymentType}</div>
-                    <div style={{ marginTop: 4, fontWeight: 700, color: '#d97706', fontSize: 11 }}>⏳ สถานะ: รอ Admin อนุมัติสลิป</div>
-                  </div>
-                </div>
-              )}
-              {detailStall.status === 'BOOKED' && (
-                <div style={{ background: '#fee2e2', borderRadius: 12, padding: '12px 14px', fontSize: 12 }}>
-                  <div style={{ fontWeight: 700, color: '#7f1d1d', marginBottom: 8, fontSize: 13 }}>🔴 ล็อกนี้ถูกจองเรียบร้อยแล้ว</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5, color: '#374151' }}>
-                    <div>👤 ผู้จอง: <strong>{detailStall.bookedBy}</strong></div>
-                    <div>📞 เบอร์โทร: {detailStall.phone}</div>
-                    <div>💳 ชำระผ่าน: {detailStall.paymentType}</div>
-                    <div style={{ marginTop: 4, fontWeight: 700, color: '#059669', fontSize: 11 }}>✅ สถานะ: ชำระเงินและอนุมัติเรียบร้อย</div>
-                  </div>
-                </div>
-              )}
-              {detailStall.status === 'MAINTENANCE' && (
-                <div style={{ background: '#f3f4f6', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#6b7280', fontWeight: 600 }}>
-                  ⚪ ล็อกนี้อยู่ระหว่างปิดปรับปรุง ยังไม่เปิดจอง
-                </div>
-              )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-              <button onClick={() => setDetailStall(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 12, padding: '9px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 13, color: '#374151' }}>
-                ปิด
-              </button>
-              {detailStall.status === 'AVAILABLE' && (
-                <button onClick={() => { setBookingForm(detailStall); setFormMsg(''); }} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: 12, padding: '9px 22px', cursor: 'pointer', fontWeight: 700, fontSize: 13, boxShadow: '0 4px 12px rgba(5,150,105,.4)' }}>
-                  🛒 จองล็อกนี้ทันที
+            {/* Zone Filters */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '14px' }}>
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6 }}>
+                {zonesList.map(z => {
+                  const isSelected = selectedZone === z.id;
+                  return (
+                    <button key={z.id} onClick={() => setSelectedZone(z.id)} style={{
+                      whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20,
+                      border: isSelected ? '1px solid #0A3A2F' : '1px solid #E2E8F0',
+                      background: isSelected ? '#0A3A2F' : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#475569',
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                    }}>
+                      {z.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, color: '#475569' }}>
+                  <input type="checkbox" checked={vacantOnly} onChange={e => setVacantOnly(e.target.checked)} style={{ width: 15, height: 15, accentColor: '#0A3A2F' }} />
+                  {t.vacantOnly}
+                </label>
+                <input
+                  type="text"
+                  placeholder={t.searchPlaceholder}
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', maxWidth: 300, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB' }}
+                />
+              </div>
+            </div>
+
+            {/* Split screen plan layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+              
+              {/* Map Panel (Left: Custom Interactive SVG Seri Market Style) */}
+              <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '16px', position: 'relative' }}>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0A3A2F', margin: 0 }}>🗺️ {t.mapTitle}</h3>
+                  
+                  <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', borderRadius: 8, padding: 3 }}>
+                    <button onClick={() => handleZoom('out')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>-</button>
+                    <button onClick={() => handleZoom('reset')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 11 }}>🏠</button>
+                    <button onClick={() => handleZoom('in')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
+                  </div>
+                </div>
+
+                {/* Viewport for SVG */}
+                <div style={{ overflow: 'auto', minHeight: 480, maxHeight: 600, border: '1px solid #E2E8F0', borderRadius: 8, background: '#FAFBFB', position: 'relative' }}>
+                  <div style={{
+                    position: 'relative',
+                    width: 850,
+                    height: 550,
+                    transform: `scale(${zoomScale})`,
+                    transformOrigin: 'top left',
+                    transition: 'transform 0.15s ease-out'
+                  }}>
+                    {/* SVG Graphic Map (Seri Market style vector diagram) */}
+                    <svg viewBox="0 0 850 550" width="100%" height="100%" style={{ background: '#F1F5F9' }}>
+                      {/* Grid background lines */}
+                      <defs>
+                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(15, 56, 46, 0.03)" strokeWidth="1" />
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+
+                      {/* Main Pathways & Street labels */}
+                      <rect x="0" y="240" width="850" height="40" fill="#FFFFFF" opacity="0.9" />
+                      <text x="320" y="265" fill="#64748B" fontSize="13" fontWeight="800" letterSpacing="4">{t.pathway.toUpperCase()}</text>
+
+                      {/* Entrance & Exit Markers */}
+                      <polygon points="380,10 395,30 365,30" fill="#EF4444" />
+                      <text x="410" y="25" fill="#EF4444" fontSize="11" fontWeight="800">MAIN ENTRANCE</text>
+
+                      {/* Layout Zones labels */}
+                      <text x="140" y="320" fill="#0A3A2F" fontSize="12" fontWeight="800" opacity="0.6">ZONE 1 (FASHION)</text>
+                      <text x="240" y="210" fill="#B25000" fontSize="12" fontWeight="800" opacity="0.6">ZONE 2 (DIAGONAL)</text>
+                      <text x="440" y="100" fill="#0A3A2F" fontSize="12" fontWeight="800" opacity="0.6">ZONE 10/11 (TOP)</text>
+                      <text x="730" y="100" fill="#0A3A2F" fontSize="11" fontWeight="800" opacity="0.6">ZONE 12</text>
+
+                      {/* Render stalls as vector rectangles with text inside */}
+                      {filteredStalls.map(s => {
+                        const isSelected = selectedStall && selectedStall.id === s.id;
+                        const c = statusColors[s.status] || statusColors.MAINTENANCE;
+                        
+                        return (
+                          <g 
+                            key={s.id} 
+                            onClick={() => handleStallClick(s)}
+                            style={{ cursor: s.status === 'MAINTENANCE' ? 'not-allowed' : 'pointer' }}
+                          >
+                            <rect
+                              x={s.x - s.w / 2}
+                              y={s.y - s.h / 2}
+                              width={s.w}
+                              height={s.h}
+                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                              fill={c.fill}
+                              stroke={isSelected ? '#E77A1F' : c.stroke}
+                              strokeWidth={isSelected ? 3.5 : 1.5}
+                              rx="3"
+                              ry="3"
+                              style={{ transition: 'all 0.15s' }}
+                            />
+                            <text
+                              x={s.x}
+                              y={s.y + 3}
+                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                              fill={c.text}
+                              fontSize="8"
+                              fontWeight="800"
+                              textAnchor="middle"
+                              style={{ pointerEvents: 'none', userSelect: 'none' }}
+                            >
+                              {s.stall_number}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Panel */}
+              <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+                {!selectedStall ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#64748B', textAlign: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 28 }}>📋</div>
+                    <p style={{ fontSize: 12, margin: 0 }}>{t.clickStallInfo}</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0A3A2F', margin: 0, paddingBottom: 10, borderBottom: '1px solid #F1F5F9' }}>
+                        Stall: {selectedStall.stall_number}
+                      </h3>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#64748B' }}>{t.zone}</span>
+                          <strong style={{ color: '#1E293B' }}>{t.zone} {selectedStall.zone}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#64748B' }}>{t.size}</span>
+                          <strong style={{ color: '#1E293B' }}>{t.sizeVal}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: '#64748B' }}>{t.rent}</span>
+                          <strong style={{ color: '#1E293B' }}>฿{selectedStall.price} / วัน</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#64748B' }}>{t.status}</span>
+                          <span style={{
+                            background: selectedStall.status === 'AVAILABLE' ? '#FEF3C7' : 
+                                        selectedStall.status === 'PENDING' ? '#FEF08A' : 
+                                        selectedStall.status === 'BOOKED' ? '#E7FDF4' : '#F1F5F9',
+                            color: selectedStall.status === 'AVAILABLE' ? '#D97706' : 
+                                   selectedStall.status === 'PENDING' ? '#78350F' : 
+                                   selectedStall.status === 'BOOKED' ? '#10B981' : '#475569',
+                            padding: '2px 8px', borderRadius: 12, fontWeight: 700, fontSize: 10
+                          }}>
+                            {selectedStall.status === 'AVAILABLE' ? t.statusAvailable :
+                             selectedStall.status === 'PENDING' ? t.statusPending :
+                             selectedStall.status === 'BOOKED' ? t.statusBooked : t.statusMaintenance}
+                          </span>
+                        </div>
+
+                        {selectedStall.bookedBy && (
+                          <div style={{ background: '#FAFBFB', borderRadius: 8, padding: 10, marginTop: 8, border: '1px solid #E2E8F0' }}>
+                            <div style={{ fontWeight: 700, color: '#0F382E' }}>👤 {t.colTenant}: {selectedStall.bookedBy}</div>
+                            <div style={{ color: '#64748B', marginTop: 4 }}>📞 {t.colPhone}: {selectedStall.phone}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {selectedStall.status === 'AVAILABLE' && (
+                      <button onClick={() => setShowBookingForm(true)} style={{
+                        background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 10, width: '100%'
+                      }}>{t.bookBtn}</button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ── TAB: STAFF VERIFICATION ── */}
+        {activeTab === 'admin' && currentUser && currentUser.role === 'ADMIN' && (
+          <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '24px' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#0F382E', marginBottom: 16 }}>{t.adminPanelTitle}</h2>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFBFB', textAlign: 'left' }}>
+                    <th style={{ padding: 10 }}>{t.colStall}</th>
+                    <th style={{ padding: 10 }}>{t.colName}</th>
+                    <th style={{ padding: 10 }}>{t.colPhone}</th>
+                    <th style={{ padding: 10 }}>{t.colAmount}</th>
+                    <th style={{ padding: 10 }}>{t.colSlip}</th>
+                    <th style={{ padding: 10 }}>{t.colStatus}</th>
+                    <th style={{ padding: 10 }}>{t.colManage}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stalls.filter(s => s.status === 'PENDING').map(s => (
+                    <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: 10, fontWeight: 700 }}>{s.stall_number}</td>
+                      <td style={{ padding: 10 }}>{s.bookedBy}</td>
+                      <td style={{ padding: 10 }}>{s.phone}</td>
+                      <td style={{ padding: 10, fontWeight: 700 }}>฿{s.price}</td>
+                      <td style={{ padding: 10 }}>
+                        <a href="https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip" target="_blank" rel="noreferrer" style={{ color: '#0F382E', fontWeight: 600 }}>View Slip</a>
+                      </td>
+                      <td style={{ padding: 10 }}>
+                        <span style={{ background: '#FEF7E0', color: '#B06000', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700 }}>{t.statusPending}</span>
+                      </td>
+                      <td style={{ padding: 10 }}>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={() => handleApprove(s.id, 'approve')} style={{ background: '#0F382E', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.approve}</button>
+                          <button onClick={() => handleApprove(s.id, 'reject')} style={{ background: '#EF4444', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.reject}</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* ── POPUP: MEMBER LOGIN ── */}
+      {showLoginModal && (
+        <div onClick={() => setShowLoginModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(3px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', borderRadius: 12, padding: '24px', maxWidth: 360, width: '100%', border: '1px solid #E2E8F0', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0F382E', margin: '0 0 16px' }}>🔑 {t.loginModalTitle}</h3>
+
+            <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {!isStaffLogin ? (
+                <>
+                  <input type="tel" required placeholder="081-234-5678" value={loginPhone} onChange={e => setLoginPhone(e.target.value)} style={{
+                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
+                  }} />
+                  
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input type="text" maxLength={6} placeholder="OTP Code" value={loginOtp} onChange={e => setLoginOtp(e.target.value)} style={{
+                      flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none', textAlign: 'center'
+                    }} />
+                    <button type="button" onClick={() => setOtpSent(true)} style={{
+                      background: '#0F382E', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 11, cursor: 'pointer', fontWeight: 700
+                    }}>{t.getOtp}</button>
+                  </div>
+                  <span style={{ fontSize: 10, color: '#64748B' }}>{t.otpNotice}</span>
+                </>
+              ) : (
+                <>
+                  <input type="text" required placeholder="Username" value={staffUser} onChange={e => setStaffUser(e.target.value)} style={{
+                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
+                  }} />
+                  <input type="password" required placeholder="Password" value={staffPass} onChange={e => setStaffPass(e.target.value)} style={{
+                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
+                  }} />
+                </>
+              )}
+
+              {loginErrorMsg && <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>{loginErrorMsg}</div>}
+
+              <button type="submit" style={{
+                background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 6
+              }}>{t.submitLogin}</button>
+
+              <div style={{ borderTop: '1px solid #E2E8F0', marginTop: 12, paddingTop: 12 }}>
+                <span style={{ display: 'block', fontSize: 11, color: '#64748B', textAlign: 'center', marginBottom: 10 }}>{t.socialLogin}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <button type="button" onClick={() => handleSocialLogin('Google')} style={{
+                    background: '#FFFFFF', color: '#475569', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                  }}>
+                    <span>🌐</span> {t.googleLogin}
+                  </button>
+                  <button type="button" onClick={() => handleSocialLogin('Facebook')} style={{
+                    background: '#1877F2', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                  }}>
+                    <span>🔵</span> {t.facebookLogin}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: 8 }}>
+                <button type="button" onClick={() => { setIsStaffLogin(!isStaffLogin); setLoginErrorMsg(''); }} style={{
+                  background: 'none', border: 'none', color: '#0F382E', fontSize: 11, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline'
+                }}>
+                  {isStaffLogin ? t.userLoginLink : t.staffLoginLink}
                 </button>
-              )}
-            </div>
+              </div>
+
+            </form>
           </div>
         </div>
       )}
 
       {/* ── POPUP: BOOKING FORM ── */}
-      {bookingForm && (
-        <div onClick={() => { setBookingForm(null); setDetailStall(null); }} style={{ position: 'fixed', inset: 0, background: 'rgba(6,78,59,.4)', backdropFilter: 'blur(5px)', zIndex: 201, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 24, padding: 28, maxWidth: 440, width: '100%', boxShadow: '0 24px 64px rgba(0,0,0,.2)', border: '1.5px solid #d1fae5' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #ecfdf5' }}>
-              <h3 style={{ fontFamily: "'Mali', cursive", fontWeight: 700, fontSize: 18, color: '#065f46' }}>
-                📝 แบบฟอร์มจองล็อก {bookingForm.stall_number}
-              </h3>
-              <button onClick={() => setBookingForm(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#9ca3af' }}>✕</button>
-            </div>
+      {showBookingForm && selectedStall && (
+        <div onClick={() => setShowBookingForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(3px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', borderRadius: 12, padding: '24px', maxWidth: 400, width: '100%', border: '1px solid #E2E8F0', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0F382E', margin: '0 0 16px' }}>📝 {t.bookingFormTitle} ({selectedStall.stall_number})</h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13 }}>
-              <div style={{ background: '#f0fdf4', borderRadius: 12, padding: '10px 14px', display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#6b7280' }}>โซน / ค่าเช่า</span>
-                <span style={{ fontWeight: 700, color: '#065f46' }}>{bookingForm.zone} · ฿{bookingForm.price}/วัน</span>
-              </div>
-              {[
-                { label: 'ชื่อ-นามสกุล *', key: 'name', placeholder: 'เช่น สมชาย ขายของดี', type: 'text' },
-                { label: 'เบอร์โทรศัพท์ *', key: 'phone', placeholder: 'เช่น 081-234-5678', type: 'tel' },
-                { label: 'เลขบัตรประชาชน * (PDPA)', key: 'citizenId', placeholder: 'เลขบัตร 13 หลัก', type: 'text' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label style={{ display: 'block', fontWeight: 600, color: '#374151', marginBottom: 6, fontSize: 12 }}>{f.label}</label>
-                  <input type={f.type} placeholder={f.placeholder} value={form[f.key]}
-                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 14px', borderRadius: 12, border: '1.5px solid #d1fae5', fontSize: 13, outline: 'none', color: '#164e63', background: '#fafafa' }}
-                    onFocus={e => e.target.style.borderColor = '#10b981'}
-                    onBlur={e => e.target.style.borderColor = '#d1fae5'}
-                  />
-                  {f.key === 'citizenId' && <div style={{ fontSize: 10, color: '#059669', marginTop: 4 }}>🔒 เข้ารหัส AES-256-GCM ตามมาตรฐาน PDPA</div>}
-                </div>
-              ))}
+            <form onSubmit={handleBook} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label style={{ display: 'block', fontWeight: 600, color: '#374151', marginBottom: 6, fontSize: 12 }}>ช่องทางชำระเงิน</label>
-                <select value={form.paymentType} onChange={e => setForm(p => ({ ...p, paymentType: e.target.value }))}
-                  style={{ width: '100%', padding: '9px 14px', borderRadius: 12, border: '1.5px solid #d1fae5', fontSize: 13, background: '#fafafa', color: '#164e63' }}>
-                  <option value="PROMPTPAY">PromptPay (พร้อมเพย์)</option>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{t.fullName}</label>
+                <input type="text" required placeholder="e.g. John Doe" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} style={{
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none'
+                }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{t.phoneLabel}</label>
+                <input type="tel" required placeholder="e.g. 081-234-5678" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} style={{
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none'
+                }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{t.citizenId}</label>
+                <input type="text" required placeholder="13-Digit ID / Passport" value={form.citizenId} onChange={e => setForm(p => ({ ...p, citizenId: e.target.value }))} style={{
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none'
+                }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{t.paymentMethod}</label>
+                <select value={form.paymentType} onChange={e => setForm(p => ({ ...p, paymentType: e.target.value }))} style={{
+                  width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB'
+                }}>
+                  <option value="PROMPTPAY">PromptPay QR Code</option>
                   <option value="TRUEMONEY">TrueMoney Wallet</option>
                 </select>
               </div>
-              {formMsg && (
-                <div style={{ background: formMsg.startsWith('✅') ? '#d1fae5' : '#fee2e2', color: formMsg.startsWith('✅') ? '#065f46' : '#7f1d1d', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 600 }}>
-                  {formMsg}
-                </div>
-              )}
-            </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 22, paddingTop: 16, borderTop: '1px solid #ecfdf5' }}>
-              <button onClick={() => setBookingForm(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 12, padding: '10px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 13, color: '#374151' }}>
-                ยกเลิก
-              </button>
-              <button onClick={handleBook} disabled={loading} style={{ background: loading ? '#a7f3d0' : '#059669', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 24px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 13, boxShadow: loading ? 'none' : '0 4px 12px rgba(5,150,105,.35)' }}>
-                {loading ? '⏳ กำลังส่งข้อมูล...' : '✅ ยืนยันจองล็อก'}
-              </button>
-            </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{t.slipUpload}</label>
+                <input type="file" required style={{ fontSize: 11 }} />
+              </div>
+
+              <span style={{ fontSize: 10, color: '#64748B' }}>{t.pdpaNotice}</span>
+
+              {formMsg && <div style={{ fontSize: 11, color: '#137333', fontWeight: 600 }}>{formMsg}</div>}
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowBookingForm(false)} style={{
+                  background: '#F1F5F9', color: '#475569', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+                }}>{t.cancel}</button>
+                
+                <button type="submit" disabled={loading} style={{
+                  background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer'
+                }}>{loading ? t.loadingBooking : t.confirmBooking}</button>
+              </div>
+
+            </form>
           </div>
         </div>
       )}
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: '#064e3b', color: '#6ee7b7', fontSize: 12, textAlign: 'center', padding: '18px 20px', marginTop: 40, borderTop: '1px solid #065f46' }}>
-        © 2026 กาดมาลิน พลาซ่า มช. (Malin Market Chiang Mai) · Supabase Staging Environment
+      <footer style={{ background: '#FFFFFF', borderTop: '1px solid #E5E7EB', color: '#64748B', fontSize: 11, textAlign: 'center', padding: '20px', marginTop: 40 }}>
+        © 2026 Hylife Malin Plaza Rental System · Managed by Hylife Group · All Rights Reserved
       </footer>
+
     </div>
   );
 }
