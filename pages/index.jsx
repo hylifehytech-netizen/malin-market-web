@@ -1,53 +1,276 @@
 import React, { useState } from 'react';
 
-// Real coordinates representing the Malin Plaza DWG map in vector SVG coordinates (viewBox="0 0 850 550")
+// ======================================================
+//  MALIN PLAZA – INITIAL_STALLS
+//  Coordinates mapped to the real DWG layout plan
+//  viewBox="0 0 1100 700"  (landscape, diagonal building)
+//
+//  Layout orientation: building rotates ~30° CW from north
+//  Zones arranged from bottom-left (Zone A/1) to top-right (Zone B/2/outer)
+//
+//  Each stall: { id, stall_number, zone, price, status,
+//               x, y (center), w, h (dims), r (rotation°) }
+// ======================================================
+
+// Helper to generate a row of stalls along a diagonal axis
+// startX, startY = center of first stall; count = num stalls
+// stepX, stepY = how much to move per stall
+// zone, price, r, w, h = shared properties
+function makeRow(prefix, zone, startX, startY, count, stepX, stepY, r, w, h, price, overrides = {}) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${prefix}_${i + 1}`,
+    stall_number: `${zone}-${String(i + 1).padStart(2, '0')}`,
+    zone,
+    price,
+    status: 'AVAILABLE',
+    x: Math.round(startX + stepX * i),
+    y: Math.round(startY + stepY * i),
+    w, h, r,
+    ...(overrides[i] || {}),
+  }));
+}
+
 const INITIAL_STALLS = [
-  // Zone 1 (Left - Rotated blocks)
-  { id: 'z1_1', stall_number: '1-01', zone: '1', price: 250, status: 'AVAILABLE', x: 25, y: 390, w: 26, h: 40, r: -22 },
-  { id: 'z1_2', stall_number: '1-02', zone: '1', price: 250, status: 'AVAILABLE', x: 50, y: 380, w: 26, h: 40, r: -22 },
-  { id: 'z1_3', stall_number: '1-03', zone: '1', price: 250, status: 'BOOKED', bookedBy: 'เก๋ แฟชั่น', phone: '081-111-2222', paymentType: 'PromptPay', x: 75, y: 370, w: 26, h: 40, r: -22 },
-  { id: 'z1_4', stall_number: '1-04', zone: '1', price: 250, status: 'AVAILABLE', x: 100, y: 360, w: 26, h: 40, r: -22 },
-  { id: 'z1_5', stall_number: '1-05', zone: '1', price: 250, status: 'PENDING', bookedBy: 'นัท เสื้อผ้า', phone: '082-222-3333', paymentType: 'TrueMoney', x: 125, y: 350, w: 26, h: 40, r: -22 },
-  
-  { id: 'z1_6', stall_number: '1-10', zone: '1', price: 250, status: 'AVAILABLE', x: 95, y: 475, w: 26, h: 40, r: -35 },
-  { id: 'z1_7', stall_number: '1-11', zone: '1', price: 250, status: 'AVAILABLE', x: 116, y: 460, w: 26, h: 40, r: -35 },
-  { id: 'z1_8', stall_number: '1-12', zone: '1', price: 250, status: 'BOOKED', bookedBy: 'มาลี เครื่องประดับ', phone: '083-333-4444', paymentType: 'PromptPay', x: 137, y: 445, w: 26, h: 40, r: -35 },
+  // ──────────────────────────────────────────────────
+  // ZONE A  –  ล็อกใหญ่แถวซ้าย (Blue zone in DWG)
+  //  ~30 stalls, oriented ~-30° from horizontal
+  //  Runs from bottom-left toward center-right
+  // ──────────────────────────────────────────────────
+  ...makeRow('zA', 'A', 120, 540, 8, 26, -14, -30, 24, 40, 300, {
+    2: { status: 'BOOKED', bookedBy: 'สมชาย เครื่องหนัง', phone: '081-001-0001', paymentType: 'PromptPay' },
+    5: { status: 'PENDING', bookedBy: 'วาสนา แฟชั่น', phone: '081-001-0002', paymentType: 'TrueMoney' },
+  }),
+  ...makeRow('zA2', 'A', 147, 546, 8, 26, -14, -30, 24, 40, 300, {
+    0: { stall_number: 'A-09' },
+    1: { stall_number: 'A-10', status: 'BOOKED', bookedBy: 'นพดล ผ้าไทย', phone: '081-001-0003', paymentType: 'PromptPay' },
+    2: { stall_number: 'A-11' },
+    3: { stall_number: 'A-12' },
+    4: { stall_number: 'A-13' },
+    5: { stall_number: 'A-14' },
+    6: { stall_number: 'A-15' },
+    7: { stall_number: 'A-16' },
+  }),
 
-  // Zone 2 (Center diagonal lane)
-  { id: 'z2_1', stall_number: '2-01', zone: '2', price: 300, status: 'AVAILABLE', x: 300, y: 360, w: 18, h: 36, r: 72 },
-  { id: 'z2_2', stall_number: '2-02', zone: '2', price: 300, status: 'AVAILABLE', x: 310, y: 330, w: 18, h: 36, r: 72 },
-  { id: 'z2_3', stall_number: '2-03', zone: '2', price: 300, status: 'BOOKED', bookedBy: 'เจ๊ดา ส้มตำ', phone: '084-444-5555', paymentType: 'PromptPay', x: 320, y: 300, w: 18, h: 36, r: 72 },
-  { id: 'z2_4', stall_number: '2-04', zone: '2', price: 300, status: 'AVAILABLE', x: 330, y: 270, w: 18, h: 36, r: 72 },
+  // ──────────────────────────────────────────────────
+  // ZONE B  –  ล็อกกลางแถวใหญ่ (Blue/Orange center rows)
+  //  Main diagonal stall block, ~40 stalls per row, 3 rows
+  // ──────────────────────────────────────────────────
+  ...makeRow('zB1', 'B', 200, 500, 14, 28, -15, -30, 26, 44, 280, {
+    0: { status: 'BOOKED', bookedBy: 'เจ๊อ้อย อาหารใต้', phone: '082-002-0001', paymentType: 'PromptPay' },
+    3: { status: 'PENDING', bookedBy: 'กิตติ เสื้อยืด', phone: '082-002-0002', paymentType: 'TrueMoney' },
+    8: { status: 'BOOKED', bookedBy: 'แม่เล็ก ขนม', phone: '082-002-0003', paymentType: 'PromptPay' },
+    11: { status: 'MAINTENANCE' },
+  }),
+  ...makeRow('zB2', 'B', 228, 507, 14, 28, -15, -30, 26, 44, 280, {
+    0: { stall_number: 'B-15' },
+    1: { stall_number: 'B-16' },
+    2: { stall_number: 'B-17', status: 'BOOKED', bookedBy: 'ป้าแดง กับข้าว', phone: '082-002-0004', paymentType: 'PromptPay' },
+    3: { stall_number: 'B-18' },
+    4: { stall_number: 'B-19' },
+    5: { stall_number: 'B-20' },
+    6: { stall_number: 'B-21' },
+    7: { stall_number: 'B-22' },
+    8: { stall_number: 'B-23' },
+    9: { stall_number: 'B-24' },
+    10: { stall_number: 'B-25' },
+    11: { stall_number: 'B-26' },
+    12: { stall_number: 'B-27' },
+    13: { stall_number: 'B-28' },
+  }),
+  ...makeRow('zB3', 'B', 256, 514, 14, 28, -15, -30, 26, 44, 280, {
+    0: { stall_number: 'B-29' },
+    1: { stall_number: 'B-30', status: 'PENDING', bookedBy: 'สุดา เครื่องสำอาง', phone: '082-002-0005', paymentType: 'TrueMoney' },
+    2: { stall_number: 'B-31' },
+    3: { stall_number: 'B-32' },
+    4: { stall_number: 'B-33' },
+    5: { stall_number: 'B-34' },
+    6: { stall_number: 'B-35' },
+    7: { stall_number: 'B-36' },
+    8: { stall_number: 'B-37' },
+    9: { stall_number: 'B-38' },
+    10: { stall_number: 'B-39' },
+    11: { stall_number: 'B-40' },
+    12: { stall_number: 'B-41', status: 'BOOKED', bookedBy: 'มานพ รองเท้า', phone: '082-002-0006', paymentType: 'PromptPay' },
+    13: { stall_number: 'B-42' },
+  }),
 
-  // Zone 3, 5, 6 (Center bottom diagonal blocks)
-  { id: 'z3_1', stall_number: '3-01', zone: '3', price: 200, status: 'AVAILABLE', x: 380, y: 470, w: 22, h: 32, r: -45 },
-  { id: 'z3_2', stall_number: '3-02', zone: '3', price: 200, status: 'PENDING', bookedBy: 'ชานมไข่มุก', phone: '085-555-6666', paymentType: 'TrueMoney', x: 400, y: 450, w: 22, h: 32, r: -45 },
-  { id: 'z5_1', stall_number: '5-01', zone: '5', price: 200, status: 'AVAILABLE', x: 440, y: 410, w: 22, h: 32, r: -45 },
-  { id: 'z5_2', stall_number: '5-02', zone: '5', price: 200, status: 'MAINTENANCE', x: 460, y: 390, w: 22, h: 32, r: -45 },
-  { id: 'z6_1', stall_number: '6-01', zone: '6', price: 180, status: 'AVAILABLE', x: 500, y: 350, w: 22, h: 32, r: -45 },
-  { id: 'z6_2', stall_number: '6-02', zone: '6', price: 180, status: 'AVAILABLE', x: 520, y: 330, w: 22, h: 32, r: -45 },
+  // ──────────────────────────────────────────────────
+  // ZONE C  –  แถวกลางขวา (Orange zone)
+  //  Diagonal rows, rotated ~-30°
+  // ──────────────────────────────────────────────────
+  ...makeRow('zC1', 'C', 390, 460, 12, 28, -15, -30, 26, 44, 250, {
+    1: { status: 'BOOKED', bookedBy: 'ยุวดี ผักสด', phone: '083-003-0001', paymentType: 'PromptPay' },
+    4: { status: 'PENDING', bookedBy: 'อนุชา กล้วยทอด', phone: '083-003-0002', paymentType: 'TrueMoney' },
+    9: { status: 'MAINTENANCE' },
+  }),
+  ...makeRow('zC2', 'C', 418, 467, 12, 28, -15, -30, 26, 44, 250, {
+    0: { stall_number: 'C-13' },
+    1: { stall_number: 'C-14' },
+    2: { stall_number: 'C-15', status: 'BOOKED', bookedBy: 'บุปผา ดอกไม้', phone: '083-003-0003', paymentType: 'PromptPay' },
+    3: { stall_number: 'C-16' },
+    4: { stall_number: 'C-17' },
+    5: { stall_number: 'C-18' },
+    6: { stall_number: 'C-19' },
+    7: { stall_number: 'C-20' },
+    8: { stall_number: 'C-21' },
+    9: { stall_number: 'C-22' },
+    10: { stall_number: 'C-23' },
+    11: { stall_number: 'C-24' },
+  }),
+  ...makeRow('zC3', 'C', 446, 474, 12, 28, -15, -30, 26, 44, 250, {
+    0: { stall_number: 'C-25' },
+    1: { stall_number: 'C-26' },
+    2: { stall_number: 'C-27' },
+    3: { stall_number: 'C-28', status: 'PENDING', bookedBy: 'เจริญ อาหารอีสาน', phone: '083-003-0004', paymentType: 'PromptPay' },
+    4: { stall_number: 'C-29' },
+    5: { stall_number: 'C-30' },
+    6: { stall_number: 'C-31' },
+    7: { stall_number: 'C-32' },
+    8: { stall_number: 'C-33' },
+    9: { stall_number: 'C-34' },
+    10: { stall_number: 'C-35' },
+    11: { stall_number: 'C-36' },
+  }),
 
-  // Zone 8 (Souvenirs / Right bottom block)
-  { id: 'z8_1', stall_number: '8-01', zone: '8', price: 220, status: 'AVAILABLE', x: 530, y: 450, w: 24, h: 32, r: -15 },
-  { id: 'z8_2', stall_number: '8-02', zone: '8', price: 220, status: 'AVAILABLE', x: 560, y: 440, w: 24, h: 32, r: -15 },
+  // ──────────────────────────────────────────────────
+  // ZONE D  –  แถวบนขวา (Pink/Magenta zone — ของฝาก)
+  //  Upper-right block, rotated ~-30°
+  // ──────────────────────────────────────────────────
+  ...makeRow('zD1', 'D', 570, 380, 10, 28, -15, -30, 26, 44, 320, {
+    0: { status: 'BOOKED', bookedBy: 'ดารารัตน์ ของที่ระลึก', phone: '084-004-0001', paymentType: 'PromptPay' },
+    3: { status: 'PENDING', bookedBy: 'ไชยา เครื่องดื่ม', phone: '084-004-0002', paymentType: 'TrueMoney' },
+  }),
+  ...makeRow('zD2', 'D', 598, 387, 10, 28, -15, -30, 26, 44, 320, {
+    0: { stall_number: 'D-11' },
+    1: { stall_number: 'D-12', status: 'BOOKED', bookedBy: 'วรรณา สินค้าแฮนด์เมด', phone: '084-004-0003', paymentType: 'PromptPay' },
+    2: { stall_number: 'D-13' },
+    3: { stall_number: 'D-14' },
+    4: { stall_number: 'D-15' },
+    5: { stall_number: 'D-16' },
+    6: { stall_number: 'D-17' },
+    7: { stall_number: 'D-18' },
+    8: { stall_number: 'D-19' },
+    9: { stall_number: 'D-20' },
+  }),
+  ...makeRow('zD3', 'D', 626, 394, 10, 28, -15, -30, 26, 44, 320, {
+    0: { stall_number: 'D-21' },
+    1: { stall_number: 'D-22' },
+    2: { stall_number: 'D-23', status: 'MAINTENANCE' },
+    3: { stall_number: 'D-24' },
+    4: { stall_number: 'D-25' },
+    5: { stall_number: 'D-26' },
+    6: { stall_number: 'D-27' },
+    7: { stall_number: 'D-28' },
+    8: { stall_number: 'D-29' },
+    9: { stall_number: 'D-30' },
+  }),
 
-  // Zone 9 (Center horizontal top row)
-  { id: 'z9_1', stall_number: '9-01', zone: '9', price: 220, status: 'AVAILABLE', x: 450, y: 200, w: 24, h: 32, r: 8 },
-  { id: 'z9_2', stall_number: '9-02', zone: '9', price: 220, status: 'AVAILABLE', x: 476, y: 203, w: 24, h: 32, r: 8 },
-  { id: 'z9_3', stall_number: '9-03', zone: '9', price: 220, status: 'PENDING', bookedBy: 'อมรรัตน์ กิฟต์', phone: '086-666-7777', paymentType: 'TrueMoney', x: 502, y: 206, w: 24, h: 32, r: 8 },
+  // ──────────────────────────────────────────────────
+  // ZONE E  –  แถวบนสุด (Yellow/เสื้อผ้า)
+  //  Long narrow rows at top-right corner
+  // ──────────────────────────────────────────────────
+  ...makeRow('zE1', 'E', 700, 290, 9, 28, -15, -30, 26, 40, 350, {
+    1: { status: 'BOOKED', bookedBy: 'อรวรรณ ผ้าไหม', phone: '085-005-0001', paymentType: 'PromptPay' },
+    5: { status: 'PENDING', bookedBy: 'สมศักดิ์ เสื้อโปโล', phone: '085-005-0002', paymentType: 'TrueMoney' },
+  }),
+  ...makeRow('zE2', 'E', 728, 297, 9, 28, -15, -30, 26, 40, 350, {
+    0: { stall_number: 'E-10' },
+    1: { stall_number: 'E-11' },
+    2: { stall_number: 'E-12', status: 'BOOKED', bookedBy: 'รุจิรา กระเป๋า', phone: '085-005-0003', paymentType: 'PromptPay' },
+    3: { stall_number: 'E-13' },
+    4: { stall_number: 'E-14' },
+    5: { stall_number: 'E-15' },
+    6: { stall_number: 'E-16' },
+    7: { stall_number: 'E-17' },
+    8: { stall_number: 'E-18' },
+  }),
 
-  // Zone 10 (Top center)
-  { id: 'z10_1', stall_number: '10-01', zone: '10', price: 280, status: 'AVAILABLE', x: 490, y: 145, w: 22, h: 28, r: 8 },
-  { id: 'z10_2', stall_number: '10-02', zone: '10', price: 280, status: 'BOOKED', bookedBy: 'โกโก้เข้มข้น', phone: '087-777-8888', paymentType: 'PromptPay', x: 512, y: 148, w: 22, h: 28, r: 8 },
+  // ──────────────────────────────────────────────────
+  // ZONE F  –  มุมขวาบน (Corner block – เครื่องประดับ)
+  //  Smaller rotated block at very top-right
+  // ──────────────────────────────────────────────────
+  ...makeRow('zF1', 'F', 830, 200, 6, 24, -13, -30, 22, 36, 400, {
+    0: { status: 'BOOKED', bookedBy: 'ชลิตา เครื่องเงิน', phone: '086-006-0001', paymentType: 'PromptPay' },
+    2: { status: 'MAINTENANCE' },
+  }),
+  ...makeRow('zF2', 'F', 854, 207, 6, 24, -13, -30, 22, 36, 400, {
+    0: { stall_number: 'F-07' },
+    1: { stall_number: 'F-08', status: 'PENDING', bookedBy: 'ปนัดดา ผ้าซิ่น', phone: '086-006-0002', paymentType: 'TrueMoney' },
+    2: { stall_number: 'F-09' },
+    3: { stall_number: 'F-10' },
+    4: { stall_number: 'F-11' },
+    5: { stall_number: 'F-12' },
+  }),
 
-  // Zone 11 (Top horizontal long block)
-  { id: 'z11_1', stall_number: '11-01', zone: '11', price: 350, status: 'AVAILABLE', x: 530, y: 110, w: 20, h: 48, r: 8 },
-  { id: 'z11_2', stall_number: '11-02', zone: '11', price: 350, status: 'AVAILABLE', x: 550, y: 113, w: 20, h: 48, r: 8 },
-  { id: 'z11_3', stall_number: '11-03', zone: '11', price: 350, status: 'BOOKED', bookedBy: 'เป้ รองเท้า', phone: '088-888-9999', paymentType: 'PromptPay', x: 570, y: 116, w: 20, h: 48, r: 8 },
+  // ──────────────────────────────────────────────────
+  // ZONE G  –  ล็อกริมซ้ายล่าง (อาหาร/เครื่องดื่ม)
+  //  Bottom-left strip, more horizontal
+  // ──────────────────────────────────────────────────
+  ...makeRow('zG1', 'G', 80, 580, 10, 30, -5, -30, 28, 36, 200, {
+    2: { status: 'BOOKED', bookedBy: 'เพ็ญ ก๋วยเตี๋ยว', phone: '087-007-0001', paymentType: 'PromptPay' },
+    6: { status: 'PENDING', bookedBy: 'บำรุง ข้าวมันไก่', phone: '087-007-0002', paymentType: 'TrueMoney' },
+  }),
+  ...makeRow('zG2', 'G', 80, 608, 10, 30, -5, -30, 28, 36, 200, {
+    0: { stall_number: 'G-11' },
+    1: { stall_number: 'G-12' },
+    2: { stall_number: 'G-13', status: 'BOOKED', bookedBy: 'เมธา ส้มตำ', phone: '087-007-0003', paymentType: 'PromptPay' },
+    3: { stall_number: 'G-14' },
+    4: { stall_number: 'G-15' },
+    5: { stall_number: 'G-16' },
+    6: { stall_number: 'G-17' },
+    7: { stall_number: 'G-18' },
+    8: { stall_number: 'G-19' },
+    9: { stall_number: 'G-20' },
+  }),
 
-  // Zone 12 (Far Right slanted corner)
-  { id: 'z12_1', stall_number: '12-01', zone: '12', price: 200, status: 'AVAILABLE', x: 740, y: 55, w: 24, h: 38, r: -35 },
-  { id: 'z12_2', stall_number: '12-02', zone: '12', price: 200, status: 'MAINTENANCE', x: 762, y: 40, w: 24, h: 38, r: -35 }
+  // ──────────────────────────────────────────────────
+  // ZONE H  –  ล็อกกลางล่าง (อาหาร strip กลาง)
+  // ──────────────────────────────────────────────────
+  ...makeRow('zH1', 'H', 310, 555, 12, 30, -5, -30, 28, 36, 220, {
+    1: { status: 'BOOKED', bookedBy: 'ลัดดา ข้าวราดแกง', phone: '088-008-0001', paymentType: 'PromptPay' },
+    4: { status: 'PENDING', bookedBy: 'ชัย สุกี้', phone: '088-008-0002', paymentType: 'TrueMoney' },
+    9: { status: 'MAINTENANCE' },
+  }),
+  ...makeRow('zH2', 'H', 310, 583, 12, 30, -5, -30, 28, 36, 220, {
+    0: { stall_number: 'H-13' },
+    1: { stall_number: 'H-14', status: 'BOOKED', bookedBy: 'นงนุช ขนมจีน', phone: '088-008-0003', paymentType: 'PromptPay' },
+    2: { stall_number: 'H-15' },
+    3: { stall_number: 'H-16' },
+    4: { stall_number: 'H-17' },
+    5: { stall_number: 'H-18' },
+    6: { stall_number: 'H-19' },
+    7: { stall_number: 'H-20' },
+    8: { stall_number: 'H-21' },
+    9: { stall_number: 'H-22' },
+    10: { stall_number: 'H-23' },
+    11: { stall_number: 'H-24' },
+  }),
+
+  // ──────────────────────────────────────────────────
+  // ZONE I  –  อาคารขนาดใหญ่ด้านขวาล่าง (โซนน้ำ/ของสด)
+  // ──────────────────────────────────────────────────
+  ...makeRow('zI1', 'I', 540, 510, 10, 30, -5, -30, 28, 36, 180, {
+    0: { status: 'BOOKED', bookedBy: 'อุทัย ผักสด', phone: '089-009-0001', paymentType: 'PromptPay' },
+    3: { status: 'PENDING', bookedBy: 'เกศรา ผลไม้', phone: '089-009-0002', paymentType: 'TrueMoney' },
+  }),
+  ...makeRow('zI2', 'I', 540, 538, 10, 30, -5, -30, 28, 36, 180, {
+    0: { stall_number: 'I-11' },
+    1: { stall_number: 'I-12' },
+    2: { stall_number: 'I-13', status: 'BOOKED', bookedBy: 'ปรียา ของสด', phone: '089-009-0003', paymentType: 'PromptPay' },
+    3: { stall_number: 'I-14' },
+    4: { stall_number: 'I-15' },
+    5: { stall_number: 'I-16' },
+    6: { stall_number: 'I-17' },
+    7: { stall_number: 'I-18' },
+    8: { stall_number: 'I-19' },
+    9: { stall_number: 'I-20' },
+  }),
+];
+
+// Initial mock data for bookings
+const MOCK_BOOKINGS = [
+  { id: 'bk_1', stall_number: '1-03', vendor_name: 'เก๋ แฟชั่น', phone: '081-111-2222', booking_date: new Date().toISOString().split('T')[0], status: 'BOOKED', payment_type: 'PromptPay', amount: 250, slip_url: 'https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip' },
+  { id: 'bk_2', stall_number: '1-05', vendor_name: 'นัท เสื้อผ้า', phone: '082-222-3333', booking_date: new Date().toISOString().split('T')[0], status: 'PENDING', payment_type: 'TrueMoney', amount: 250, slip_url: 'https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip' }
 ];
 
 const dict = {
@@ -60,6 +283,16 @@ const dict = {
     langBtn: 'EN',
     zone: 'เลือกโซน',
     all: 'ทั้งหมด',
+    allZones: 'ทุกโซน',
+    allStatuses: 'ทุกสถานะ',
+    filterStatus: 'กรองตามสถานะ',
+    vacantOnly: 'เฉพาะล็อกว่าง',
+    searchPlaceholder: 'ค้นหาเลขล็อก...',
+    totalStalls: 'ล็อกทั้งหมด',
+    colTenant: 'ผู้เช่า',
+    bookBtn: 'จองล็อกนี้ทันที',
+    slipUpload: 'อัปโหลดสลิปการโอนเงิน',
+    otpNotice: '* สำหรับทดสอบใช้งาน กดรับ OTP แล้วกรอก 123456',
     food: 'โซนอาหาร',
     fashion: 'โซนแฟชั่น',
     gift: 'กิฟต์ช็อป',
@@ -148,6 +381,16 @@ const dict = {
     langBtn: 'TH',
     zone: 'Select Zone',
     all: 'All',
+    allZones: 'All Zones',
+    allStatuses: 'All Statuses',
+    filterStatus: 'Filter by Status',
+    vacantOnly: 'Vacant Only',
+    searchPlaceholder: 'Search stall number...',
+    totalStalls: 'Total Stalls',
+    colTenant: 'Tenant',
+    bookBtn: 'Book Stall Now',
+    slipUpload: 'Upload Payment Slip',
+    otpNotice: '* For testing: Click Get OTP then enter 123456',
     food: 'Food Zone',
     fashion: 'Fashion Zone',
     gift: 'Gift Zone',
@@ -237,6 +480,9 @@ export default function MalinMarket() {
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('vendor');
   const [selectedZone, setSelectedZone] = useState('ALL');
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [vacantOnly, setVacantOnly] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedStall, setSelectedStall] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [stalls, setStalls] = useState(INITIAL_STALLS);
@@ -261,7 +507,18 @@ export default function MalinMarket() {
   const [formMsg, setFormMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const filteredStalls = stalls.filter(s => selectedZone === 'ALL' || s.zone === selectedZone);
+  const filteredStalls = stalls.filter(s => {
+    if (selectedZone !== 'ALL' && s.zone !== selectedZone) return false;
+    if (selectedStatus !== 'ALL' && s.status !== selectedStatus) return false;
+    if (vacantOnly && s.status !== 'AVAILABLE') return false;
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      const matchNumber = s.stall_number.toLowerCase().includes(q);
+      const matchTenant = s.bookedBy && s.bookedBy.toLowerCase().includes(q);
+      if (!matchNumber && !matchTenant) return false;
+    }
+    return true;
+  });
 
   const totalStalls = stalls.length;
   const bookedCount = stalls.filter(s => s.status === 'BOOKED').length;
@@ -362,23 +619,45 @@ export default function MalinMarket() {
     setStaffPass('');
   };
 
-  // Color config matching Seri Market (Clean solid fills, clean labels)
+  // Status colors — override zone colors when not AVAILABLE
   const statusColors = {
-    AVAILABLE:   { fill: '#F59E0B', stroke: '#D97706', text: '#FFFFFF' }, // Golden/Orange available
-    PENDING:     { fill: '#FEF08A', stroke: '#F59E0B', text: '#78350F' }, // Light gold pending
-    BOOKED:      { fill: '#A7F3D0', stroke: '#10B981', text: '#064E3B' }, // Green booked
-    MAINTENANCE: { fill: '#E2E8F0', stroke: '#94A3B8', text: '#475569' }
+    AVAILABLE:   null, // → will use zoneColors below
+    PENDING:     { fill: '#FEF08A', stroke: '#EAB308', text: '#713F12' },
+    BOOKED:      { fill: '#BBF7D0', stroke: '#16A34A', text: '#14532D' },
+    MAINTENANCE: { fill: '#E2E8F0', stroke: '#94A3B8', text: '#475569' },
+  };
+
+  // Zone-based fill colors matching the DWG color scheme
+  const zoneColors = {
+    A: { fill: '#60A5FA', stroke: '#2563EB', text: '#1E3A8A' }, // Blue
+    B: { fill: '#93C5FD', stroke: '#3B82F6', text: '#1E3A8A' }, // Light blue
+    C: { fill: '#FCA5A1', stroke: '#EF4444', text: '#7F1D1D' }, // Red/Orange
+    D: { fill: '#F9A8D4', stroke: '#EC4899', text: '#831843' }, // Pink/Magenta
+    E: { fill: '#FDE68A', stroke: '#F59E0B', text: '#78350F' }, // Yellow
+    F: { fill: '#C4B5FD', stroke: '#7C3AED', text: '#4C1D95' }, // Purple
+    G: { fill: '#6EE7B7', stroke: '#10B981', text: '#064E3B' }, // Green
+    H: { fill: '#86EFAC', stroke: '#22C55E', text: '#14532D' }, // Light green
+    I: { fill: '#A7F3D0', stroke: '#34D399', text: '#065F46' }, // Teal
+  };
+
+  const getStallColor = (s) => {
+    if (s.status === 'PENDING') return statusColors.PENDING;
+    if (s.status === 'BOOKED') return statusColors.BOOKED;
+    if (s.status === 'MAINTENANCE') return statusColors.MAINTENANCE;
+    return zoneColors[s.zone] || { fill: '#F59E0B', stroke: '#D97706', text: '#FFFFFF' };
   };
 
   const zonesList = [
     { id: 'ALL', label: t.allZones },
-    { id: '1', label: 'โซน 1' },
-    { id: '2', label: 'โซน 2' },
-    { id: '3', label: 'โซน 3' },
-    { id: '9', label: 'โซน 9' },
-    { id: '10', label: 'โซน 10' },
-    { id: '11', label: 'โซน 11' },
-    { id: '12', label: 'โซน 12' }
+    { id: 'A', label: 'โซน A (แฟชั่น/หนัง)' },
+    { id: 'B', label: 'โซน B (อาหาร/เสื้อผ้า)' },
+    { id: 'C', label: 'โซน C (อาหาร/ของฝาก)' },
+    { id: 'D', label: 'โซน D (ของที่ระลึก)' },
+    { id: 'E', label: 'โซน E (ผ้าไหม/กระเป๋า)' },
+    { id: 'F', label: 'โซน F (เครื่องประดับ)' },
+    { id: 'G', label: 'โซน G (อาหาร/เครื่องดื่ม)' },
+    { id: 'H', label: 'โซน H (อาหาร)' },
+    { id: 'I', label: 'โซน I (ของสด/ผัก)' },
   ];
 
   return (
@@ -497,16 +776,34 @@ export default function MalinMarket() {
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, color: '#475569' }}>
-                  <input type="checkbox" checked={vacantOnly} onChange={e => setVacantOnly(e.target.checked)} style={{ width: 15, height: 15, accentColor: '#0A3A2F' }} />
-                  {t.vacantOnly}
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, color: '#475569' }}>
+                    <input type="checkbox" checked={vacantOnly} onChange={e => setVacantOnly(e.target.checked)} style={{ width: 15, height: 15, accentColor: '#0A3A2F' }} />
+                    {t.vacantOnly}
+                  </label>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#64748B' }}>{t.filterStatus}:</span>
+                    <select
+                      value={selectedStatus}
+                      onChange={e => setSelectedStatus(e.target.value)}
+                      style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FFFFFF', fontWeight: 600, color: '#1E293B' }}
+                    >
+                      <option value="ALL">-- {t.allStatuses} --</option>
+                      <option value="AVAILABLE">🟡 {t.statusAvailable}</option>
+                      <option value="PENDING">🟡 {t.statusPending}</option>
+                      <option value="BOOKED">🟢 {t.statusBooked}</option>
+                      <option value="MAINTENANCE">⚪ {t.statusMaintenance}</option>
+                    </select>
+                  </div>
+                </div>
+
                 <input
                   type="text"
                   placeholder={t.searchPlaceholder}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', maxWidth: 300, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB' }}
+                  style={{ width: '100%', maxWidth: 260, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB' }}
                 />
               </div>
             </div>
@@ -528,80 +825,132 @@ export default function MalinMarket() {
                 </div>
 
                 {/* Viewport for SVG */}
-                <div style={{ overflow: 'auto', minHeight: 480, maxHeight: 600, border: '1px solid #E2E8F0', borderRadius: 8, background: '#FAFBFB', position: 'relative' }}>
+                <div style={{ overflow: 'auto', minHeight: 600, maxHeight: 800, border: '1px solid #E2E8F0', borderRadius: 8, background: '#EEF2F7', position: 'relative' }}>
                   <div style={{
                     position: 'relative',
-                    width: 850,
-                    height: 550,
+                    width: 800,
+                    height: 1100,
                     transform: `scale(${zoomScale})`,
                     transformOrigin: 'top left',
                     transition: 'transform 0.15s ease-out'
                   }}>
-                    {/* SVG Graphic Map (Seri Market style vector diagram) */}
-                    <svg viewBox="0 0 850 550" width="100%" height="100%" style={{ background: '#F1F5F9' }}>
-                      {/* Grid background lines */}
+                    {/* SVG Graphic Map – Malin Plaza DWG-style rotated straight layout (Portrait orientation like DWG document) */}
+                    <svg viewBox="0 0 800 1100" width="800" height="1100" style={{ background: '#EEF2F7' }}>
+                      {/* Grid */}
                       <defs>
-                        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(15, 56, 46, 0.03)" strokeWidth="1" />
+                        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(15,56,46,0.05)" strokeWidth="0.5" />
                         </pattern>
                       </defs>
                       <rect width="100%" height="100%" fill="url(#grid)" />
 
-                      {/* Main Pathways & Street labels */}
-                      <rect x="0" y="240" width="850" height="40" fill="#FFFFFF" opacity="0.9" />
-                      <text x="320" y="265" fill="#64748B" fontSize="13" fontWeight="800" letterSpacing="4">{t.pathway.toUpperCase()}</text>
+                      {/* Main Group rotated 35deg around center to make the diagonal layout straight vertically */}
+                      <g transform="translate(180, 50) rotate(35, 450, 450)">
+                        {/* ── SITE BOUNDARY (diagonal building footprint) ── */}
+                        <polygon
+                          points="60,650 950,650 1060,440 950,30 160,30 50,250"
+                          fill="#FFFFFF" stroke="#94A3B8" strokeWidth="2" strokeDasharray="8,4" opacity="0.9"
+                        />
 
-                      {/* Entrance & Exit Markers */}
-                      <polygon points="380,10 395,30 365,30" fill="#EF4444" />
-                      <text x="410" y="25" fill="#EF4444" fontSize="11" fontWeight="800">MAIN ENTRANCE</text>
+                        {/* ── MAIN PATHWAYS & ROADS ── */}
+                        <rect x="50" y="630" width="960" height="30" fill="#CBD5E1" opacity="0.6" rx="2"/>
+                        <text x="400" y="650" fill="#475569" fontSize="11" fontWeight="700">ถ.ห้วยแก้ว (HUAY KAEW RD.)</text>
 
-                      {/* Layout Zones labels */}
-                      <text x="140" y="320" fill="#0A3A2F" fontSize="12" fontWeight="800" opacity="0.6">ZONE 1 (FASHION)</text>
-                      <text x="240" y="210" fill="#B25000" fontSize="12" fontWeight="800" opacity="0.6">ZONE 2 (DIAGONAL)</text>
-                      <text x="440" y="100" fill="#0A3A2F" fontSize="12" fontWeight="800" opacity="0.6">ZONE 10/11 (TOP)</text>
-                      <text x="730" y="100" fill="#0A3A2F" fontSize="11" fontWeight="800" opacity="0.6">ZONE 12</text>
+                        <rect x="960" y="30" width="30" height="600" fill="#CBD5E1" opacity="0.5" rx="2"/>
 
-                      {/* Render stalls as vector rectangles with text inside */}
-                      {filteredStalls.map(s => {
-                        const isSelected = selectedStall && selectedStall.id === s.id;
-                        const c = statusColors[s.status] || statusColors.MAINTENANCE;
-                        
-                        return (
-                          <g 
-                            key={s.id} 
-                            onClick={() => handleStallClick(s)}
-                            style={{ cursor: s.status === 'MAINTENANCE' ? 'not-allowed' : 'pointer' }}
-                          >
-                            <rect
-                              x={s.x - s.w / 2}
-                              y={s.y - s.h / 2}
-                              width={s.w}
-                              height={s.h}
-                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
-                              fill={c.fill}
-                              stroke={isSelected ? '#E77A1F' : c.stroke}
-                              strokeWidth={isSelected ? 3.5 : 1.5}
-                              rx="3"
-                              ry="3"
-                              style={{ transition: 'all 0.15s' }}
-                            />
-                            <text
-                              x={s.x}
-                              y={s.y + 3}
-                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
-                              fill={c.text}
-                              fontSize="8"
-                              fontWeight="800"
-                              textAnchor="middle"
-                              style={{ pointerEvents: 'none', userSelect: 'none' }}
+                        {/* Internal diagonal path between Zone B and C */}
+                        <line x1="180" y1="480" x2="900" y2="310" stroke="#E2E8F0" strokeWidth="18" strokeLinecap="round"/>
+                        <line x1="180" y1="480" x2="900" y2="310" stroke="#F8FAFC" strokeWidth="14" strokeLinecap="round" opacity="0.9"/>
+                        <text x="420" y="424" fill="#64748B" fontSize="11" fontWeight="800" transform="rotate(-8,420,424)">ทางเดินหลัก</text>
+
+                        <line x1="60" y1="560" x2="990" y2="490" stroke="#E2E8F0" strokeWidth="14" strokeLinecap="round"/>
+                        <line x1="60" y1="560" x2="990" y2="490" stroke="#F8FAFC" strokeWidth="10" strokeLinecap="round" opacity="0.9"/>
+
+                        {/* ── ENTRANCE / EXIT ── */}
+                        <polygon points="100,630 125,655 75,655" fill="#EF4444" />
+                        <text x="130" y="652" fill="#EF4444" fontSize="11" fontWeight="800">ENTRANCE</text>
+                        <rect x="880" y="50" width="60" height="22" rx="4" fill="#0A3A2F" opacity="0.8"/>
+                        <text x="887" y="65" fill="#FFFFFF" fontSize="9" fontWeight="700">EXIT (CMU)</text>
+
+                        {/* ── ZONE LABELS ── */}
+                        <text x="105" y="520" fill="#1D4ED8" fontSize="12" fontWeight="800" transform="rotate(-30,105,520)">ZONE A</text>
+                        <text x="210" y="470" fill="#1D4ED8" fontSize="12" fontWeight="800" transform="rotate(-30,210,470)">ZONE B</text>
+                        <text x="400" y="435" fill="#D97706" fontSize="12" fontWeight="800" transform="rotate(-30,400,435)">ZONE C</text>
+                        <text x="575" y="360" fill="#BE185D" fontSize="12" fontWeight="800" transform="rotate(-30,575,360)">ZONE D</text>
+                        <text x="705" y="270" fill="#D97706" fontSize="12" fontWeight="800" transform="rotate(-30,705,270)">ZONE E</text>
+                        <text x="835" y="185" fill="#7C3AED" fontSize="12" fontWeight="800" transform="rotate(-30,835,185)">ZONE F</text>
+                        <text x="85" y="575" fill="#059669" fontSize="12" fontWeight="800">ZONE G</text>
+                        <text x="320" y="545" fill="#059669" fontSize="12" fontWeight="800">ZONE H</text>
+                        <text x="550" y="500" fill="#059669" fontSize="12" fontWeight="800">ZONE I</text>
+
+                        {/* ── FACILITY MARKERS ── */}
+                        <rect x="30" y="50" width="55" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5"/>
+                        <text x="34" y="68" fill="#92400E" fontSize="9" fontWeight="700">🅿️ จอดรถ</text>
+                        <rect x="30" y="90" width="55" height="25" rx="4" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1.5"/>
+                        <text x="36" y="106" fill="#1E40AF" fontSize="9" fontWeight="700">🚻 ห้องน้ำ</text>
+
+                        {/* Render stalls inside rotated group */}
+                        {filteredStalls.map(s => {
+                          const isSelected = selectedStall && selectedStall.id === s.id;
+                          const c = getStallColor(s);
+                          
+                          return (
+                            <g 
+                              key={s.id} 
+                              onClick={() => handleStallClick(s)}
+                              style={{ cursor: s.status === 'MAINTENANCE' ? 'not-allowed' : 'pointer' }}
                             >
-                              {s.stall_number}
-                            </text>
-                          </g>
-                        );
-                      })}
+                              <rect
+                                x={s.x - s.w / 2}
+                                y={s.y - s.h / 2}
+                                width={s.w}
+                                height={s.h}
+                                transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                                fill={c.fill}
+                                stroke={isSelected ? '#E77A1F' : c.stroke}
+                                strokeWidth={isSelected ? 3.5 : 1.5}
+                                rx="3"
+                                ry="3"
+                                style={{ transition: 'all 0.15s' }}
+                              />
+                              <text
+                                x={s.x}
+                                y={s.y + 3}
+                                transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                                fill={c.text}
+                                fontSize="8"
+                                fontWeight="800"
+                                textAnchor="middle"
+                                style={{ pointerEvents: 'none', userSelect: 'none' }}
+                              >
+                                {s.stall_number}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </g>
                     </svg>
                   </div>
+                </div>
+
+                {/* Legend */}
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748B', alignSelf: 'center', marginRight: 4 }}>สถานะ:</div>
+                  {[
+                    { color: '#BBF7D0', border: '#16A34A', label: t.statusBooked },
+                    { color: '#FEF08A', border: '#EAB308', label: t.statusPending },
+                    { color: '#E2E8F0', border: '#94A3B8', label: t.statusMaintenance },
+                    { color: '#60A5FA', border: '#2563EB', label: `${t.statusAvailable} (Zone A/B)` },
+                    { color: '#FCA5A1', border: '#EF4444', label: `${t.statusAvailable} (Zone C)` },
+                    { color: '#F9A8D4', border: '#EC4899', label: `${t.statusAvailable} (Zone D)` },
+                    { color: '#FDE68A', border: '#F59E0B', label: `${t.statusAvailable} (Zone E)` },
+                    { color: '#6EE7B7', border: '#10B981', label: `${t.statusAvailable} (Zone G-I)` },
+                  ].map((leg, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ width: 12, height: 12, background: leg.color, border: `1.5px solid ${leg.border}`, borderRadius: 2 }} />
+                      <span style={{ fontSize: 10, color: '#475569' }}>{leg.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
