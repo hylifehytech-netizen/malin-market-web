@@ -579,6 +579,32 @@ export default function MalinMarket() {
     }
   };
 
+  const handleRequestOtp = async () => {
+    if (!loginPhone) {
+      setLoginErrorMsg('กรุณากรอกเบอร์โทรศัพท์');
+      return;
+    }
+    setLoginErrorMsg('');
+    try {
+      const res = await fetch('/api/line/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: loginPhone }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpSent(true);
+      } else {
+        setLoginErrorMsg(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      setLoginErrorMsg('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+    }
+  };
+
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     setLoginErrorMsg('');
@@ -1084,7 +1110,7 @@ export default function MalinMarket() {
                     <input type="text" maxLength={6} placeholder="OTP Code" value={loginOtp} onChange={e => setLoginOtp(e.target.value)} style={{
                       flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none', textAlign: 'center'
                     }} />
-                    <button type="button" onClick={() => setOtpSent(true)} style={{
+                    <button type="button" onClick={handleRequestOtp} style={{
                       background: '#0F382E', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 11, cursor: 'pointer', fontWeight: 700
                     }}>{t.getOtp}</button>
                   </div>
