@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ======================================================
 //  MALIN PLAZA – INITIAL_STALLS
@@ -501,6 +501,40 @@ export default function MalinMarket() {
   const [staffUser, setStaffUser] = useState('');
   const [staffPass, setStaffPass] = useState('');
   const [loginErrorMsg, setLoginErrorMsg] = useState('');
+
+  useEffect(() => {
+    // 1. ตรวจสอบ user จาก LocalStorage
+    const savedUser = localStorage.getItem('malin_user');
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (e) {}
+    }
+
+    // 2. ตรวจสอบ callback จาก LINE Login
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const loginStatus = urlParams.get('login');
+      const userParam = urlParams.get('user');
+
+      if (loginStatus === 'success' && userParam) {
+        try {
+          const userObj = JSON.parse(decodeURIComponent(userParam));
+          const userData = {
+            username: userObj.display_name || 'ผู้ใช้งาน LINE',
+            role: userObj.role || 'vendor',
+            avatar: userObj.avatar_url,
+            line_user_id: userObj.line_user_id
+          };
+          setCurrentUser(userData);
+          localStorage.setItem('malin_user', JSON.stringify(userData));
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (err) {
+          console.error('Failed to parse user data', err);
+        }
+      }
+    }
+  }, []);
 
   // Booking Forms
   const [form, setForm] = useState({ name: '', phone: '', citizenId: '', paymentType: 'PROMPTPAY' });
@@ -1137,17 +1171,20 @@ export default function MalinMarket() {
               }}>{t.submitLogin}</button>
 
               <div style={{ borderTop: '1px solid #E2E8F0', marginTop: 12, paddingTop: 12 }}>
-                <span style={{ display: 'block', fontSize: 11, color: '#64748B', textAlign: 'center', marginBottom: 10 }}>{t.socialLogin}</span>
+                <span style={{ display: 'block', fontSize: 11, color: '#64748B', textAlign: 'center', marginBottom: 10 }}>หรือเข้าสู่ระบบด้วย</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <button type="button" onClick={() => window.location.href = '/api/auth/line-login'} style={{
+                    background: '#06C755', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 5.82 2 10.53c0 4.23 3.65 7.78 8.58 8.41.33.07.78.22.89.5.1.26.07.67.03.94l-.15.93c-.05.29-.23 1.13.99.62 1.22-.51 6.59-3.88 8.99-6.64C23.01 13.3 24 11.96 24 10.53 24 5.82 19.52 2 12 2z"/>
+                    </svg>
+                    เข้าสู่ระบบด้วย LINE
+                  </button>
                   <button type="button" onClick={() => handleSocialLogin('Google')} style={{
                     background: '#FFFFFF', color: '#475569', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                   }}>
                     <span>🌐</span> {t.googleLogin}
-                  </button>
-                  <button type="button" onClick={() => handleSocialLogin('Facebook')} style={{
-                    background: '#1877F2', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                  }}>
-                    <span>🔵</span> {t.facebookLogin}
                   </button>
                 </div>
               </div>
