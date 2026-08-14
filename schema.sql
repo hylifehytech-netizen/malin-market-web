@@ -13,20 +13,22 @@ DROP TABLE IF EXISTS users CASCADE;
 -- 1. Enable UUID Extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Users Table (รองรับ LINE Login & เบอร์โทรศัพท์)
+-- 2. Users Table (รองรับ Google Form Pre-approved & LINE Login)
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE,
     line_user_id TEXT UNIQUE,
     display_name TEXT,
     avatar_url TEXT,
-    phone_number VARCHAR(50),
+    phone_number VARCHAR(50) UNIQUE NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'approved', -- 'approved', 'pending', 'suspended'
     role VARCHAR(50) NOT NULL DEFAULT 'vendor', -- 'vendor', 'admin', 'executive'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_users_line_user_id ON users(line_user_id);
+CREATE INDEX idx_users_phone_number ON users(phone_number);
 
 -- 3. Vendor Profiles (PDPA Encrypted Citizen ID)
 CREATE TABLE vendor_profiles (

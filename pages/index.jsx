@@ -502,6 +502,72 @@ export default function MalinMarket() {
   const [staffPass, setStaffPass] = useState('');
   const [loginErrorMsg, setLoginErrorMsg] = useState('');
 
+  // Admin Vendor Whitelist Management States
+  const [adminVendors, setAdminVendors] = useState([]);
+  const [newVendorPhone, setNewVendorPhone] = useState('');
+  const [newVendorName, setNewVendorName] = useState('');
+  const [adminSubTab, setAdminSubTab] = useState('bookings'); // 'bookings' or 'users'
+  const [adminUserLoading, setAdminUserLoading] = useState(false);
+
+  const fetchAdminVendors = async () => {
+    try {
+      setAdminUserLoading(true);
+      const res = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (data.success) {
+        setAdminVendors(data.users || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAdminUserLoading(false);
+    }
+  };
+
+  const handleAddVendor = async (e) => {
+    e.preventDefault();
+    if (!newVendorPhone) return alert('กรุณาระบุเบอร์โทรศัพท์');
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone_number: newVendorPhone,
+          display_name: newVendorName || 'ผู้ค้าที่ลงทะเบียน',
+          status: 'approved'
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('✅ เพิ่มเบอร์ผู้ค้าเข้าสู่ระบบสำเร็จ! ผู้ค้าสามารถกด Login LINE เข้ามาจับคู่เบอร์นี้ได้ทันที');
+        setNewVendorPhone('');
+        setNewVendorName('');
+        fetchAdminVendors();
+      } else {
+        alert('❌ ' + data.message);
+      }
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการบันทึก');
+    }
+  };
+
+  const handleDeleteVendor = async (id) => {
+    if (!confirm('ยืนยันที่จะลบข้อมูลผู้ค้ารายนี้?')) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchAdminVendors();
+      }
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการลบ');
+    }
+  };
+
   useEffect(() => {
     // 1. ตรวจสอบ user จาก LocalStorage
     const savedUser = localStorage.getItem('malin_user');
@@ -1261,47 +1327,214 @@ export default function MalinMarket() {
           </div>
         )}
 
-        {/* ── TAB: STAFF VERIFICATION ── */}
+        {/* ── TAB: STAFF VERIFICATION & VENDOR MANAGEMENT ── */}
         {activeTab === 'admin' && currentUser && currentUser.role === 'ADMIN' && (
           <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '24px' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#0F382E', marginBottom: 16 }}>{t.adminPanelTitle}</h2>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFBFB', textAlign: 'left' }}>
-                    <th style={{ padding: 10 }}>{t.colStall}</th>
-                    <th style={{ padding: 10 }}>{t.colName}</th>
-                    <th style={{ padding: 10 }}>{t.colPhone}</th>
-                    <th style={{ padding: 10 }}>{t.colAmount}</th>
-                    <th style={{ padding: 10 }}>{t.colSlip}</th>
-                    <th style={{ padding: 10 }}>{t.colStatus}</th>
-                    <th style={{ padding: 10 }}>{t.colManage}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stalls.filter(s => s.status === 'PENDING').map(s => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      <td style={{ padding: 10, fontWeight: 700 }}>{s.stall_number}</td>
-                      <td style={{ padding: 10 }}>{s.bookedBy}</td>
-                      <td style={{ padding: 10 }}>{s.phone}</td>
-                      <td style={{ padding: 10, fontWeight: 700 }}>฿{s.price}</td>
-                      <td style={{ padding: 10 }}>
-                        <a href="https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip" target="_blank" rel="noreferrer" style={{ color: '#0F382E', fontWeight: 600 }}>View Slip</a>
-                      </td>
-                      <td style={{ padding: 10 }}>
-                        <span style={{ background: '#FEF7E0', color: '#B06000', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700 }}>{t.statusPending}</span>
-                      </td>
-                      <td style={{ padding: 10 }}>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button onClick={() => handleApprove(s.id, 'approve')} style={{ background: '#0F382E', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.approve}</button>
-                          <button onClick={() => handleApprove(s.id, 'reject')} style={{ background: '#EF4444', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.reject}</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            
+            {/* Sub-Tabs for Admin */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottom: '1px solid #E2E8F0', paddingBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setAdminSubTab('bookings')}
+                  style={{
+                    background: adminSubTab === 'bookings' ? '#0F382E' : '#F1F5F9',
+                    color: adminSubTab === 'bookings' ? '#FFFFFF' : '#475569',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '8px 16px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  📝 {t.adminPanelTitle} ({stalls.filter(s => s.status === 'PENDING').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAdminSubTab('users'); fetchAdminVendors(); }}
+                  style={{
+                    background: adminSubTab === 'users' ? '#0F382E' : '#F1F5F9',
+                    color: adminSubTab === 'users' ? '#FFFFFF' : '#475569',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '8px 16px',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  👥 จัดการรายชื่อผู้ค้า (Google Form / LINE Match)
+                </button>
+              </div>
+
+              {adminSubTab === 'users' && (
+                <button
+                  type="button"
+                  onClick={fetchAdminVendors}
+                  style={{
+                    background: '#FAFBFB',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: 8,
+                    padding: '6px 12px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    color: '#475569'
+                  }}
+                >
+                  🔄 รีเฟรชข้อมูล
+                </button>
+              )}
             </div>
+
+            {/* Sub-Tab 1: Booking Approvals */}
+            {adminSubTab === 'bookings' && (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFBFB', textAlign: 'left' }}>
+                      <th style={{ padding: 10 }}>{t.colStall}</th>
+                      <th style={{ padding: 10 }}>{t.colName}</th>
+                      <th style={{ padding: 10 }}>{t.colPhone}</th>
+                      <th style={{ padding: 10 }}>{t.colAmount}</th>
+                      <th style={{ padding: 10 }}>{t.colSlip}</th>
+                      <th style={{ padding: 10 }}>{t.colStatus}</th>
+                      <th style={{ padding: 10 }}>{t.colManage}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stalls.filter(s => s.status === 'PENDING').map(s => (
+                      <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: 10, fontWeight: 700 }}>{s.stall_number}</td>
+                        <td style={{ padding: 10 }}>{s.bookedBy}</td>
+                        <td style={{ padding: 10 }}>{s.phone}</td>
+                        <td style={{ padding: 10, fontWeight: 700 }}>฿{s.price}</td>
+                        <td style={{ padding: 10 }}>
+                          <a href="https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip" target="_blank" rel="noreferrer" style={{ color: '#0F382E', fontWeight: 600 }}>View Slip</a>
+                        </td>
+                        <td style={{ padding: 10 }}>
+                          <span style={{ background: '#FEF7E0', color: '#B06000', padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700 }}>{t.statusPending}</span>
+                        </td>
+                        <td style={{ padding: 10 }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => handleApprove(s.id, 'approve')} style={{ background: '#0F382E', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.approve}</button>
+                            <button onClick={() => handleApprove(s.id, 'reject')} style={{ background: '#EF4444', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}>{t.reject}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Sub-Tab 2: Vendor Whitelist Management & LINE Matching */}
+            {adminSubTab === 'users' && (
+              <div>
+                {/* Form to Add New Approved Phone */}
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: '16px', marginBottom: 20 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 800, color: '#0F382E', margin: '0 0 10px' }}>➕ เพิ่มรายชื่อผู้ค้าที่ผ่านการอนุมัติ (จาก Google Form)</h4>
+                  <form onSubmit={handleAddVendor} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="เบอร์โทรศัพท์ (เช่น 0812345678)"
+                      value={newVendorPhone}
+                      onChange={e => setNewVendorPhone(e.target.value)}
+                      style={{ flex: 1, minWidth: 180, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="ชื่อ-นามสกุล / ร้านค้า (Optional)"
+                      value={newVendorName}
+                      onChange={e => setNewVendorName(e.target.value)}
+                      style={{ flex: 1, minWidth: 180, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none' }}
+                    />
+                    <button
+                      type="submit"
+                      style={{ background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      บันทึกสิทธิ์ผู้ค้า
+                    </button>
+                  </form>
+                </div>
+
+                {/* Table of Approved Vendors */}
+                {adminUserLoading ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>⏳ กำลังโหลดข้อมูล...</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#FAFBFB', textAlign: 'left' }}>
+                          <th style={{ padding: '10px 8px' }}>เบอร์โทรศัพท์</th>
+                          <th style={{ padding: '10px 8px' }}>ชื่อผู้ค้า</th>
+                          <th style={{ padding: '10px 8px' }}>สถานะสิทธิ์</th>
+                          <th style={{ padding: '10px 8px' }}>การผูกบัญชี LINE</th>
+                          <th style={{ padding: '10px 8px' }}>LINE User ID</th>
+                          <th style={{ padding: '10px 8px', textAlign: 'center' }}>จัดการ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminVendors.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94A3B8' }}>
+                              ยังไม่มีรายชื่อผู้ค้าในฐานข้อมูล กรุณาเพิ่มเบอร์โทรศัพท์ด้านบน
+                            </td>
+                          </tr>
+                        ) : (
+                          adminVendors.map(u => (
+                            <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                              <td style={{ padding: '10px 8px', fontWeight: 700, color: '#0F382E' }}>{u.phone_number || '-'}</td>
+                              <td style={{ padding: '10px 8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  {u.avatar_url && <img src={u.avatar_url} alt="" style={{ width: 22, height: 22, borderRadius: '50%' }} />}
+                                  <span>{u.display_name || '-'}</span>
+                                </div>
+                              </td>
+                              <td style={{ padding: '10px 8px' }}>
+                                <span style={{
+                                  background: u.status === 'approved' ? '#DCFCE7' : '#FEF08A',
+                                  color: u.status === 'approved' ? '#166534' : '#854D0E',
+                                  padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700
+                                }}>
+                                  {u.status === 'approved' ? '✅ อนุมัติแล้ว' : '⏳ รอตรวจสอบ'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '10px 8px' }}>
+                                {u.line_user_id ? (
+                                  <span style={{ color: '#059669', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                    🟢 ผูก LINE แล้ว
+                                  </span>
+                                ) : (
+                                  <span style={{ color: '#94A3B8', fontWeight: 600 }}>
+                                    ⚪ ยังไม่ผูก LINE
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '10px 8px', color: '#64748B', fontFamily: 'monospace', fontSize: 10 }}>
+                                {u.line_user_id ? `${u.line_user_id.substring(0, 12)}...` : '-'}
+                              </td>
+                              <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteVendor(u.id)}
+                                  style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', borderRadius: 6, padding: '4px 8px', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}
+                                >
+                                  ลบ
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         )}
 

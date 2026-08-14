@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       throw new Error('Failed to fetch LINE profile');
     }
 
-    // 3. 🔍 ตรวจสอบในตาราง users ว่ามี line_user_id นี้แล้วหรือยัง
+    // 3. 🔍 ค้นหาในตาราง users ว่ามี line_user_id นี้ผูกไว้แล้วหรือยัง
     const { data: existingUser, error: dbError } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -51,20 +51,30 @@ export default async function handler(req, res) {
       throw dbError;
     }
 
-    // 4. เงื่อนไขแยกหน้า (Redirect)
-    if (existingUser && (existingUser.phone_number || existingUser.phone)) {
-      // ✅ กรณี 1: มีบัญชีแล้ว + มีเบอร์โทรแล้ว -> เด้งไปหน้าแรก / Dashboard
+    // 4. เงื่อนไขแยกหน้า
+    if (existingUser && existingUser.status === 'approved') {
+      // ✅ กรณี 1: ผูก LINE ไว้แล้ว และได้รับอนุมัติ -> อัปเดตรูป/ชื่อล่าสุด แล้วพาเข้าหน้าหลัก
+      await supabaseAdmin
+        .from('users')
+        .update({
+          display_name: profile.displayName || existingUser.display_name,
+          avatar_url: profile.pictureUrl || existingUser.avatar_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingUser.id);
+
       const userParam = encodeURIComponent(JSON.stringify({
         id: existingUser.id,
         line_user_id: existingUser.line_user_id,
-        display_name: existingUser.display_name || profile.displayName,
-        avatar_url: existingUser.avatar_url || profile.pictureUrl,
-        phone_number: existingUser.phone_number || existingUser.phone,
+        display_name: profile.displayName || existingUser.display_name,
+        avatar_url: profile.pictureUrl || existingUser.avatar_url,
+        phone_number: existingUser.phone_number,
         role: existingUser.role || 'vendor'
       }));
+
       return res.redirect(`/?login=success&user=${userParam}`);
     } else {
-      // ⚠️ กรณี 2: ยังไม่ได้สมัคร (หรือยังไม่ได้ใส่เบอร์โทร) -> เด้งไปหน้าสมัครสมาชิก พร้อมส่งข้อมูล LINE ไปด้วย
+      // ⚠️ กรณี 2: ยังไม่เคยผูก LINE -> เด้งไปหน้า /register เพื่อกรอกเบอร์โทรที่เคยให้ไว้ใน Google Form
       const params = new URLSearchParams({
         line_user_id: profile.userId,
         display_name: profile.displayName || '',
