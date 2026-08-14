@@ -67,46 +67,46 @@ export default function Register() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-50 font-sans">
+    <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: "'Kanit', sans-serif" }}>
       <Head>
         <title>ลงทะเบียนสมาชิก - กาดมาลินหน้า มช.</title>
       </Head>
 
-      <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-xl border border-slate-100">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#0A3A2F] text-white font-black text-2xl shadow-md mb-3">
+      <div style={{ width: '100%', maxWidth: 440, background: '#FFFFFF', borderRadius: 24, padding: '32px 28px', border: '1px solid #E2E8F0', boxShadow: '0 10px 30px rgba(0,0,0,0.06)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 16, background: '#0A3A2F', color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 900, marginBottom: 12 }}>
             M
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">ลงทะเบียนสมาชิก</h2>
-          <p className="text-xs text-slate-500 mt-1">กรอกเบอร์โทรศัพท์เพื่อเปิดใช้งานบัญชีผู้ค้า Malin Plaza</p>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F382E', margin: '0 0 6px' }}>ลงทะเบียนสมาชิก</h2>
+          <p style={{ fontSize: 12, color: '#64748B', margin: 0 }}>กรอกเบอร์โทรศัพท์เพื่อเปิดใช้งานบัญชีผู้ค้า Malin Plaza</p>
         </div>
 
         {/* แสดงข้อมูลที่ดึงมาจาก LINE */}
         {line_user_id && (
-          <div className="flex items-center gap-3.5 p-3.5 mb-6 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', marginBottom: 24, background: '#ECFDF5', borderRadius: 16, border: '1px solid #A7F3D0' }}>
             {avatar_url ? (
-              <img src={avatar_url} alt="Profile" className="w-12 h-12 rounded-full border-2 border-emerald-600 shadow-sm" />
+              <img src={avatar_url} alt="Profile" style={{ width: 52, height: 52, minWidth: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid #059669' }} />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
+              <div style={{ width: 52, height: 52, minWidth: 52, borderRadius: '50%', background: '#059669', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18 }}>
                 LINE
               </div>
             )}
-            <div>
-              <p className="font-bold text-slate-800 text-sm">{display_name || 'บัญชี LINE'}</p>
-              <p className="text-xs text-emerald-700 font-semibold">🟢 เชื่อมต่อผ่าน LINE สำเร็จ</p>
+            <div style={{ overflow: 'hidden' }}>
+              <p style={{ fontWeight: 800, color: '#065F46', fontSize: 15, margin: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{display_name || 'บัญชี LINE'}</p>
+              <p style={{ fontSize: 11, color: '#047857', fontWeight: 700, margin: '2px 0 0' }}>🟢 เชื่อมต่อผ่าน LINE สำเร็จ</p>
             </div>
           </div>
         )}
 
         {errorMsg && (
-          <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-3 rounded text-xs text-red-700 font-semibold">
+          <div style={{ marginBottom: 16, background: '#FEF2F2', borderLeft: '4px solid #EF4444', padding: '10px 12px', borderRadius: 8, fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="space-y-5">
+        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
               เบอร์โทรศัพท์มือถือ *
             </label>
             <input
@@ -114,23 +114,35 @@ export default function Register() {
               placeholder="08XXXXXXXX"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #CBD5E1', fontSize: 14, outline: 'none', background: '#FAFBFB', boxSizing: 'border-box' }}
               required
             />
-            <span className="text-[10px] text-slate-400 mt-1 block">🔒 ข้อมูลได้รับการคุ้มครองความปลอดภัยตามมาตรฐาน PDPA</span>
+            <span style={{ fontSize: 10, color: '#94A3B8', marginTop: 6, display: 'block' }}>🔒 ข้อมูลได้รับการคุ้มครองความปลอดภัยตามมาตรฐาน PDPA</span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3.5 rounded-xl transition shadow-md disabled:bg-slate-300"
+            style={{
+              width: '100%',
+              background: loading ? '#94A3B8' : '#06C755',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              padding: '13px',
+              borderRadius: 12,
+              border: 'none',
+              fontSize: 14,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 12px rgba(6, 199, 85, 0.25)',
+              transition: 'all 0.2s'
+            }}
           >
             {loading ? 'กำลังบันทึก...' : 'ยืนยันการสมัครสมาชิก'}
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-          <a href="/" className="text-xs text-slate-500 hover:text-emerald-700 font-semibold">
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
+          <a href="/" style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textDecoration: 'none' }}>
             ← กลับหน้าแรก
           </a>
         </div>
