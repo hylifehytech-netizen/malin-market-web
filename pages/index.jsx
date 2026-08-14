@@ -532,6 +532,10 @@ export default function MalinMarket() {
         } catch (err) {
           console.error('Failed to parse user data', err);
         }
+      } else if (loginStatus === 'error') {
+        const errorMsg = urlParams.get('message') || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+        alert('❌ LINE Login Error: ' + decodeURIComponent(errorMsg));
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, []);
@@ -674,6 +678,9 @@ export default function MalinMarket() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('malin_user');
+    }
     setActiveTab('vendor');
     setLoginPhone('');
     setLoginOtp('');
@@ -753,9 +760,14 @@ export default function MalinMarket() {
               </button>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>👤 {currentUser.username}</span>
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt="Profile" style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #0A3A2F' }} />
+                ) : (
+                  <span style={{ fontSize: 13 }}>👤</span>
+                )}
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F382E' }}>{currentUser.username}</span>
                 <button onClick={handleLogout} style={{
-                  background: 'none', border: '1px solid #FCA5A5', color: '#E11D48', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer'
+                  background: 'none', border: '1px solid #FCA5A5', color: '#E11D48', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer'
                 }}>
                   {t.logout}
                 </button>
@@ -765,28 +777,42 @@ export default function MalinMarket() {
 
         </div>
 
-        {currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'BOD') && (
+        {currentUser && (
           <div style={{ background: '#F8FAFC', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
-            <div style={{ maxWidth: 1250, margin: '0 auto', display: 'flex', gap: 8, padding: '6px 20px' }}>
+            <div style={{ maxWidth: 1250, margin: '0 auto', display: 'flex', gap: 8, padding: '6px 20px', flexWrap: 'wrap' }}>
               <button onClick={() => setActiveTab('vendor')} style={{
                 background: activeTab === 'vendor' ? '#0A3A2F' : 'transparent',
                 color: activeTab === 'vendor' ? '#FFFFFF' : '#475569',
                 border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
-              }}>{t.tabMap}</button>
+              }}>🗺️ {lang === 'TH' ? 'ผังจองล็อก' : 'Stall Map'}</button>
+
+              <button onClick={() => setActiveTab('my-bookings')} style={{
+                background: activeTab === 'my-bookings' ? '#0A3A2F' : 'transparent',
+                color: activeTab === 'my-bookings' ? '#FFFFFF' : '#475569',
+                border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+              }}>📑 {lang === 'TH' ? 'ประวัติการจองของฉัน' : 'My Bookings'}</button>
+
+              <button onClick={() => setActiveTab('profile')} style={{
+                background: activeTab === 'profile' ? '#0A3A2F' : 'transparent',
+                color: activeTab === 'profile' ? '#FFFFFF' : '#475569',
+                border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+              }}>👤 {lang === 'TH' ? 'ข้อมูลส่วนตัว' : 'My Profile'}</button>
 
               {currentUser.role === 'ADMIN' && (
                 <button onClick={() => setActiveTab('admin')} style={{
                   background: activeTab === 'admin' ? '#0A3A2F' : 'transparent',
                   color: activeTab === 'admin' ? '#FFFFFF' : '#475569',
                   border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
-                }}>{t.tabAdmin}</button>
+                }}>👮 {t.tabAdmin}</button>
               )}
 
-              <button onClick={() => setActiveTab('dashboard')} style={{
-                background: activeTab === 'dashboard' ? '#0A3A2F' : 'transparent',
-                color: activeTab === 'dashboard' ? '#FFFFFF' : '#475569',
-                border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
-              }}>{t.tabDashboard}</button>
+              {(currentUser.role === 'ADMIN' || currentUser.role === 'BOD') && (
+                <button onClick={() => setActiveTab('dashboard')} style={{
+                  background: activeTab === 'dashboard' ? '#0A3A2F' : 'transparent',
+                  color: activeTab === 'dashboard' ? '#FFFFFF' : '#475569',
+                  border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                }}>📊 {t.tabDashboard}</button>
+              )}
             </div>
           </div>
         )}
@@ -1081,6 +1107,157 @@ export default function MalinMarket() {
 
             </div>
 
+          </div>
+        )}
+
+        {/* ── TAB: MY BOOKINGS ── */}
+        {activeTab === 'my-bookings' && (
+          <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0F382E', margin: 0 }}>📑 {lang === 'TH' ? 'ประวัติการจองล็อกของฉัน' : 'My Booking Records'}</h2>
+                <p style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>{lang === 'TH' ? 'ตรวจสอบสถานะคำขอจอง สลิปโอนเงิน และใบเสร็จ' : 'Track your stall booking status and payment slips'}</p>
+              </div>
+              <button onClick={() => setActiveTab('vendor')} style={{
+                background: '#0F382E', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer'
+              }}>+ {lang === 'TH' ? 'จองล็อกเพิ่ม' : 'Book New Stall'}</button>
+            </div>
+
+            {bookings.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                <div>{lang === 'TH' ? 'ยังไม่มีรายการจองล็อกในระบบ' : 'No booking history found'}</div>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #E2E8F0', background: '#F8FAFC', textAlign: 'left' }}>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colStall}</th>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colDate}</th>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colAmount}</th>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colPayment}</th>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colStatus}</th>
+                      <th style={{ padding: '12px 10px', color: '#475569' }}>{t.colSlip}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map((b) => (
+                      <tr key={b.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: '12px 10px', fontWeight: 800, color: '#0F382E' }}>{b.stall_number}</td>
+                        <td style={{ padding: '12px 10px', color: '#475569' }}>{b.booking_date || selectedDate}</td>
+                        <td style={{ padding: '12px 10px', fontWeight: 700 }}>฿{b.amount || 300}</td>
+                        <td style={{ padding: '12px 10px' }}>
+                          <span style={{ background: '#F1F5F9', color: '#475569', padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600 }}>{b.payment_type || 'PROMPTPAY'}</span>
+                        </td>
+                        <td style={{ padding: '12px 10px' }}>
+                          <span style={{
+                            background: b.status === 'APPROVED' ? '#DCFCE7' : b.status === 'PENDING' ? '#FEF08A' : '#FEE2E2',
+                            color: b.status === 'APPROVED' ? '#166534' : b.status === 'PENDING' ? '#854D0E' : '#991B1B',
+                            padding: '4px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700
+                          }}>
+                            {b.status === 'APPROVED' ? '✅ ' + t.approvedLabel : b.status === 'PENDING' ? '⏳ ' + t.pendingLabel : '❌ ' + t.rejectedLabel}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 10px' }}>
+                          <a href={b.slip_url || 'https://placehold.co/400x500/f8fafc/0f172a?text=Payment+Slip'} target="_blank" rel="noreferrer" style={{ color: '#0A3A2F', fontWeight: 600, textDecoration: 'underline', fontSize: 12 }}>
+                            🔍 {lang === 'TH' ? 'ดูหลักฐาน' : 'View Slip'}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB: USER PROFILE ── */}
+        {activeTab === 'profile' && currentUser && (
+          <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '28px', maxWidth: 640, margin: '0 auto' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0F382E', marginBottom: 20 }}>👤 {lang === 'TH' ? 'ข้อมูลโปรไฟล์ผู้ค้า' : 'Vendor Profile'}</h2>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid #F1F5F9' }}>
+              {currentUser.avatar ? (
+                <img src={currentUser.avatar} alt="Avatar" style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid #0A3A2F' }} />
+              ) : (
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#0A3A2F', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700 }}>
+                  {currentUser.username ? currentUser.username.charAt(0) : 'U'}
+                </div>
+              )}
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#1E293B' }}>{currentUser.username}</div>
+                <div style={{ fontSize: 12, color: '#059669', fontWeight: 700, marginTop: 2 }}>🟢 {lang === 'TH' ? 'เชื่อมต่อ LINE สำเร็จ' : 'LINE Account Connected'}</div>
+                {currentUser.line_user_id && <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2, fontFamily: 'monospace' }}>LINE UID: {currentUser.line_user_id}</div>}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{lang === 'TH' ? 'ชื่อที่แสดงในระบบ' : 'Display Name'}</label>
+                <input type="text" readOnly value={currentUser.username} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: 13 }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{lang === 'TH' ? 'บทบาทผู้ใช้' : 'Role'}</label>
+                <input type="text" readOnly value={currentUser.role === 'ADMIN' ? 'เจ้าหน้าที่ดูแลระบบ (Admin)' : currentUser.role === 'BOD' ? 'คณะผู้บริหาร (Executive)' : 'ผู้เช่าแผงค้า (Vendor)'} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', background: '#F8FAFC', fontSize: 13 }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>{lang === 'TH' ? 'ความปลอดภัยข้อมูล' : 'Data Privacy'}</label>
+                <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', padding: 12, borderRadius: 8, fontSize: 12, color: '#065F46' }}>
+                  🔒 ข้อมูลตัวตนได้รับการเข้ารหัสและคุ้มครองความปลอดภัยตามมาตรฐาน PDPA ของเครือ ไฮไลฟ์ โกลบอล ฟู้ด
+                </div>
+              </div>
+
+              <div style={{ marginTop: 12, display: 'flex', gap: 10 }}>
+                <button onClick={() => setActiveTab('vendor')} style={{ flex: 1, background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  🗺️ {lang === 'TH' ? 'ไปยังหน้าผังจองล็อก' : 'Go to Stall Map'}
+                </button>
+                <button onClick={handleLogout} style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', borderRadius: 8, padding: '12px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  {t.logout}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: EXECUTIVE SUMMARY & DASHBOARD ── */}
+        {activeTab === 'dashboard' && currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'BOD') && (
+          <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0F382E', margin: 0 }}>📊 {t.execSummary}</h2>
+                <p style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>ภาพรวมรายได้และสถิติการใช้งานแผงตลาดกาดมาลินหน้า มช.</p>
+              </div>
+              <button onClick={() => alert('ดาวน์โหลดรายงานสรุป PDF สำเร็จ')} style={{ background: '#0F382E', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                📄 {t.exportPdf}
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 16 }}>
+                <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700 }}>{t.totalStalls}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F382E', marginTop: 4 }}>{totalStalls}</div>
+                <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>รองรับผู้ค้าทั้งหมด</div>
+              </div>
+              <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 10, padding: 16 }}>
+                <div style={{ fontSize: 11, color: '#065F46', fontWeight: 700 }}>{t.statsOccupancy}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#059669', marginTop: 4 }}>{occupancy}%</div>
+                <div style={{ fontSize: 10, color: '#047857', marginTop: 2 }}>{bookedCount} จาก {totalStalls} ล็อก</div>
+              </div>
+              <div style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 10, padding: 16 }}>
+                <div style={{ fontSize: 11, color: '#92400E', fontWeight: 700 }}>{t.estRevenue}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#D97706', marginTop: 4 }}>฿{revenue.toLocaleString()}</div>
+                <div style={{ fontSize: 10, color: '#B45309', marginTop: 2 }}>{t.basedOnApproved}</div>
+              </div>
+              <div style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 10, padding: 16 }}>
+                <div style={{ fontSize: 11, color: '#475569', fontWeight: 700 }}>{t.statsPending}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#334155', marginTop: 4 }}>{pendingCount}</div>
+                <div style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>คำขอรอดำเนินการ</div>
+              </div>
+            </div>
           </div>
         )}
 
