@@ -1309,72 +1309,105 @@ export default function MalinMarket() {
 
       {/* ── POPUP: MEMBER LOGIN ── */}
       {showLoginModal && (
-        <div onClick={() => setShowLoginModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(3px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', borderRadius: 12, padding: '24px', maxWidth: 360, width: '100%', border: '1px solid #E2E8F0', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0F382E', margin: '0 0 16px' }}>🔑 {t.loginModalTitle}</h3>
+        <div onClick={() => setShowLoginModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#FFFFFF', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%', border: '1px solid #E2E8F0', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+            
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#0A3A2F', color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 900, marginBottom: 12 }}>
+              M
+            </div>
+            
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0F382E', margin: '0 0 6px' }}>{t.loginModalTitle}</h3>
+            <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 20px' }}>เข้าสู่ระบบผู้ค้าเพื่อเลือกและจองแผงตลาด Malin Plaza</p>
 
-            <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {!isStaffLogin ? (
-                <>
-                  <input type="tel" required placeholder="081-234-5678" value={loginPhone} onChange={e => setLoginPhone(e.target.value)} style={{
-                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
-                  }} />
-                  
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <input type="text" maxLength={6} placeholder="OTP Code" value={loginOtp} onChange={e => setLoginOtp(e.target.value)} style={{
-                      flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none', textAlign: 'center'
-                    }} />
-                    <button type="button" onClick={handleRequestOtp} style={{
-                      background: '#0F382E', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 11, cursor: 'pointer', fontWeight: 700
-                    }}>{t.getOtp}</button>
+            {!isStaffLogin ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/api/auth/line-login'}
+                  style={{
+                    background: '#06C755',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '13px 16px',
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    boxShadow: '0 4px 14px rgba(6, 199, 85, 0.3)',
+                    transition: 'transform 0.1s'
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 5.82 2 10.53c0 4.23 3.65 7.78 8.58 8.41.33.07.78.22.89.5.1.26.07.67.03.94l-.15.93c-.05.29-.23 1.13.99.62 1.22-.51 6.59-3.88 8.99-6.64C23.01 13.3 24 11.96 24 10.53 24 5.82 19.52 2 12 2z"/>
+                  </svg>
+                  เข้าสู่ระบบด้วย LINE
+                </button>
+
+                {/* กล่องติดต่อ / แอดเพื่อน LINE OA */}
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 14, padding: '14px', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 8 }}>
+                    ยังไม่มีบัญชี หรือต้องการติดต่อเจ้าหน้าที่?
                   </div>
-                  <span style={{ fontSize: 10, color: '#64748B' }}>{t.otpNotice}</span>
-                </>
-              ) : (
-                <>
-                  <input type="text" required placeholder="Username" value={staffUser} onChange={e => setStaffUser(e.target.value)} style={{
-                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
-                  }} />
-                  <input type="password" required placeholder="Password" value={staffPass} onChange={e => setStaffPass(e.target.value)} style={{
-                    width: '100%', padding: '10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none'
-                  }} />
-                </>
-              )}
-
-              {loginErrorMsg && <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>{loginErrorMsg}</div>}
-
-              <button type="submit" style={{
-                background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 6
-              }}>{t.submitLogin}</button>
-
-              <div style={{ borderTop: '1px solid #E2E8F0', marginTop: 12, paddingTop: 12 }}>
-                <span style={{ display: 'block', fontSize: 11, color: '#64748B', textAlign: 'center', marginBottom: 10 }}>หรือเข้าสู่ระบบด้วย</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <button type="button" onClick={() => window.location.href = '/api/auth/line-login'} style={{
-                    background: '#06C755', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                  }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 5.82 2 10.53c0 4.23 3.65 7.78 8.58 8.41.33.07.78.22.89.5.1.26.07.67.03.94l-.15.93c-.05.29-.23 1.13.99.62 1.22-.51 6.59-3.88 8.99-6.64C23.01 13.3 24 11.96 24 10.53 24 5.82 19.52 2 12 2z"/>
-                    </svg>
-                    เข้าสู่ระบบด้วย LINE
-                  </button>
-                  <button type="button" onClick={() => handleSocialLogin('Google')} style={{
-                    background: '#FFFFFF', color: '#475569', border: '1px solid #CBD5E1', borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                  }}>
-                    <span>🌐</span> {t.googleLogin}
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                    <img
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40769kvfhj"
+                      alt="LINE OA QR Code"
+                      style={{ width: 110, height: 110, borderRadius: 10, border: '1px solid #CBD5E1' }}
+                    />
+                  </div>
+                  <a
+                    href="https://line.me/R/ti/p/@769kvfhj"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#059669',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    💬 แอดไลน์ LINE OA: @769kvfhj
+                  </a>
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>ชื่อบัญชีเจ้าหน้าที่</label>
+                  <input type="text" required placeholder="Username (admin / bod)" value={staffUser} onChange={e => setStaffUser(e.target.value)} style={{
+                    width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none', boxSizing: 'border-box'
+                  }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#475569', marginBottom: 4 }}>รหัสผ่าน</label>
+                  <input type="password" required placeholder="Password" value={staffPass} onChange={e => setStaffPass(e.target.value)} style={{
+                    width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none', boxSizing: 'border-box'
+                  }} />
+                </div>
 
-              <div style={{ textAlign: 'center', marginTop: 8 }}>
-                <button type="button" onClick={() => { setIsStaffLogin(!isStaffLogin); setLoginErrorMsg(''); }} style={{
-                  background: 'none', border: 'none', color: '#0F382E', fontSize: 11, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline'
-                }}>
-                  {isStaffLogin ? t.userLoginLink : t.staffLoginLink}
-                </button>
-              </div>
+                {loginErrorMsg && <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>{loginErrorMsg}</div>}
 
-            </form>
+                <button type="submit" style={{
+                  background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 4
+                }}>เข้าสู่ระบบเจ้าหน้าที่</button>
+              </form>
+            )}
+
+            <div style={{ textAlign: 'center', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F1F5F9' }}>
+              <button type="button" onClick={() => { setIsStaffLogin(!isStaffLogin); setLoginErrorMsg(''); }} style={{
+                background: 'none', border: 'none', color: '#64748B', fontSize: 11, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline'
+              }}>
+                {isStaffLogin ? '← กลับหน้าเข้าสู่ระบบสำหรับผู้เช่า (LINE Login)' : 'เข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ (Staff Login)'}
+              </button>
+            </div>
+
           </div>
         </div>
       )}
