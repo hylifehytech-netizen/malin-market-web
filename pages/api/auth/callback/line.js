@@ -8,7 +8,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // ตรวจจับ URL อัตโนมัติ (ไม่ว่ารันบน Vercel หรือ Local)
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+    const baseUrl = `${protocol}://${host}`;
     const redirectUri = `${baseUrl}/api/auth/callback/line`;
 
     // 1. แลก Code เป็น Access Token
