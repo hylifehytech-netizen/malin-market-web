@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// Malin Market Web App
 
 // ======================================================
 //  MALIN PLAZA – INITIAL_STALLS
@@ -634,6 +635,12 @@ export default function MalinMarket() {
   const handleStallClick = (stall) => {
     setSelectedStall(stall);
     setFormMsg('');
+    if (typeof window !== 'undefined' && window.innerWidth < 992) {
+      setTimeout(() => {
+        const el = document.getElementById('stall-detail-panel');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
   };
 
   const handleZoom = (type) => {
@@ -885,27 +892,30 @@ export default function MalinMarket() {
       </header>
 
       {/* ── MAIN CONTENT ── */}
-      <main style={{ maxWidth: 1250, margin: '0 auto', padding: '24px 20px' }}>
+      <main className="main-container">
         
         {activeTab === 'vendor' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             
             {/* Header banner */}
-            <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A3A2F', margin: '0 0 8px' }}>{t.title}</h2>
-              <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5, margin: 0 }}>{t.subtitle}</p>
+            <div className="card-box">
+              <h2 style={{ fontSize: 17, fontWeight: 800, color: '#0A3A2F', margin: '0 0 6px' }}>{t.title}</h2>
+              <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.4, margin: 0 }}>{t.subtitle}</p>
             </div>
 
             {/* Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <div className="stats-grid">
               {[
-                { label: t.totalStalls, val: totalStalls },
-                { label: t.statsAvailable, val: availableCount, col: '#D97706' },
-                { label: t.statsBooked, val: bookedCount, col: '#10B981' },
-                { label: t.statsOccupancy, val: occupancy + '%' }
+                { label: t.totalStalls, val: totalStalls, icon: '🏬' },
+                { label: t.statsAvailable, val: availableCount, col: '#D97706', icon: '🟡' },
+                { label: t.statsBooked, val: bookedCount, col: '#10B981', icon: '🟢' },
+                { label: t.statsOccupancy, val: occupancy + '%', col: '#2563EB', icon: '📈' }
               ].map((m, idx) => (
-                <div key={idx} style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: '12px 16px' }}>
-                  <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{m.label}</div>
+                <div key={idx} style={{ background: '#FFFFFF', borderRadius: 10, border: '1px solid #E2E8F0', padding: '12px 14px', boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{m.label}</span>
+                    <span style={{ fontSize: 14 }}>{m.icon}</span>
+                  </div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: m.col || '#1E293B', marginTop: 4 }}>{m.val}</div>
                 </div>
               ))}
@@ -913,16 +923,17 @@ export default function MalinMarket() {
 
             {/* Zone Filters */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '14px' }}>
-              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6 }}>
+              <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
                 {zonesList.map(z => {
                   const isSelected = selectedZone === z.id;
                   return (
                     <button key={z.id} onClick={() => setSelectedZone(z.id)} style={{
-                      whiteSpace: 'nowrap', padding: '6px 14px', borderRadius: 20,
+                      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: 20,
                       border: isSelected ? '1px solid #0A3A2F' : '1px solid #E2E8F0',
-                      background: isSelected ? '#0A3A2F' : '#FFFFFF',
+                      background: isSelected ? '#0A3A2F' : '#F8FAFC',
                       color: isSelected ? '#FFFFFF' : '#475569',
-                      fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                      fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                      flexShrink: 0
                     }}>
                       {z.label}
                     </button>
@@ -931,18 +942,18 @@ export default function MalinMarket() {
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, color: '#475569' }}>
                     <input type="checkbox" checked={vacantOnly} onChange={e => setVacantOnly(e.target.checked)} style={{ width: 15, height: 15, accentColor: '#0A3A2F' }} />
                     {t.vacantOnly}
                   </label>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#64748B' }}>{t.filterStatus}:</span>
                     <select
                       value={selectedStatus}
                       onChange={e => setSelectedStatus(e.target.value)}
-                      style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FFFFFF', fontWeight: 600, color: '#1E293B' }}
+                      style={{ padding: '4px 8px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FFFFFF', fontWeight: 600, color: '#1E293B' }}
                     >
                       <option value="ALL">-- {t.allStatuses} --</option>
                       <option value="AVAILABLE">🟡 {t.statusAvailable}</option>
@@ -958,170 +969,187 @@ export default function MalinMarket() {
                   placeholder={t.searchPlaceholder}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  style={{ width: '100%', maxWidth: 260, padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB' }}
+                  style={{ width: '100%', maxWidth: 240, padding: '7px 12px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 12, outline: 'none', background: '#FAFBFB' }}
                 />
               </div>
             </div>
 
             {/* Split screen plan layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+            <div className="plan-grid-container">
               
               {/* Map Panel (Left: Custom Interactive SVG Seri Market Style) */}
-              <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '16px', position: 'relative' }}>
+              <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '14px', position: 'relative' }}>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0A3A2F', margin: 0 }}>🗺️ {t.mapTitle}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
+                  <div>
+                    <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0A3A2F', margin: 0 }}>🗺️ {t.mapTitle}</h3>
+                    <p style={{ fontSize: 11, color: '#64748B', margin: '2px 0 0' }}>คลิกหรือแตะช่องล็อกเพื่อดูรายละเอียดและจอง</p>
+                  </div>
                   
-                  <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', borderRadius: 8, padding: 3 }}>
-                    <button onClick={() => handleZoom('out')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>-</button>
-                    <button onClick={() => handleZoom('reset')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 11 }}>🏠</button>
-                    <button onClick={() => handleZoom('in')} style={{ width: 24, height: 24, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
+                  <div style={{ display: 'flex', gap: 4, background: '#F1F5F9', borderRadius: 8, padding: 3, border: '1px solid #E2E8F0' }}>
+                    <button type="button" onClick={() => handleZoom('out')} style={{ width: 28, height: 28, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: 14, color: '#334155' }}>-</button>
+                    <button type="button" onClick={() => handleZoom('reset')} style={{ padding: '0 8px', height: 28, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#475569' }}>รีเซ็ต 🏠</button>
+                    <button type="button" onClick={() => handleZoom('in')} style={{ width: 28, height: 28, border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 'bold', fontSize: 14, color: '#334155' }}>+</button>
                   </div>
                 </div>
 
                 {/* Viewport for SVG */}
-                <div style={{ overflow: 'auto', minHeight: 600, maxHeight: 800, border: '1px solid #E2E8F0', borderRadius: 8, background: '#EEF2F7', position: 'relative' }}>
+                <div className="map-viewport">
                   <div style={{
                     position: 'relative',
-                    width: 800,
-                    height: 1100,
+                    width: '100%',
+                    height: '100%',
                     transform: `scale(${zoomScale})`,
                     transformOrigin: 'top left',
                     transition: 'transform 0.15s ease-out'
                   }}>
-                    {/* SVG Graphic Map – Malin Plaza DWG-style rotated straight layout (Portrait orientation like DWG document) */}
-                    <svg viewBox="0 0 800 1100" width="800" height="1100" style={{ background: '#EEF2F7' }}>
+                    {/* SVG Graphic Map – Malin Plaza DWG-style clean vector layout */}
+                    <svg viewBox="20 15 1030 665" width="100%" height="100%" style={{ background: '#F8FAFC', display: 'block', minHeight: '100%' }}>
                       {/* Grid */}
                       <defs>
                         <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
                           <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(15,56,46,0.05)" strokeWidth="0.5" />
                         </pattern>
+                        <filter id="stallShadow" x="-10%" y="-10%" width="120%" height="120%">
+                          <feDropShadow dx="0" dy="1" stdDeviation="1" floodOpacity="0.1" />
+                        </filter>
                       </defs>
                       <rect width="100%" height="100%" fill="url(#grid)" />
 
-                      {/* Main Group rotated 35deg around center to make the diagonal layout straight vertically */}
-                      <g transform="translate(180, 50) rotate(35, 450, 450)">
-                        {/* ── SITE BOUNDARY (diagonal building footprint) ── */}
-                        <polygon
-                          points="60,650 950,650 1060,440 950,30 160,30 50,250"
-                          fill="#FFFFFF" stroke="#94A3B8" strokeWidth="2" strokeDasharray="8,4" opacity="0.9"
-                        />
+                      {/* ── SITE BOUNDARY (market perimeter) ── */}
+                      <polygon
+                        points="50,650 960,650 1040,440 960,35 150,35 45,250"
+                        fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2" strokeDasharray="6,4"
+                      />
 
-                        {/* ── MAIN PATHWAYS & ROADS ── */}
-                        <rect x="50" y="630" width="960" height="30" fill="#CBD5E1" opacity="0.6" rx="2"/>
-                        <text x="400" y="650" fill="#475569" fontSize="11" fontWeight="700">ถ.ห้วยแก้ว (HUAY KAEW RD.)</text>
+                      {/* ── MAIN PATHWAYS & ROADS ── */}
+                      <rect x="40" y="630" width="970" height="32" fill="#E2E8F0" rx="4"/>
+                      <text x="460" y="651" fill="#475569" fontSize="12" fontWeight="700" textAnchor="middle">🛣️ ถ.ห้วยแก้ว (HUAY KAEW RD.) — ทางเข้ากาดมาลิน</text>
 
-                        <rect x="960" y="30" width="30" height="600" fill="#CBD5E1" opacity="0.5" rx="2"/>
+                      <rect x="970" y="35" width="32" height="600" fill="#E2E8F0" rx="4"/>
+                      <text x="986" y="320" fill="#64748B" fontSize="11" fontWeight="700" textAnchor="middle" transform="rotate(90, 986, 320)">ถนนภายในโครงการ</text>
 
-                        {/* Internal diagonal path between Zone B and C */}
-                        <line x1="180" y1="480" x2="900" y2="310" stroke="#E2E8F0" strokeWidth="18" strokeLinecap="round"/>
-                        <line x1="180" y1="480" x2="900" y2="310" stroke="#F8FAFC" strokeWidth="14" strokeLinecap="round" opacity="0.9"/>
-                        <text x="420" y="424" fill="#64748B" fontSize="11" fontWeight="800" transform="rotate(-8,420,424)">ทางเดินหลัก</text>
+                      {/* Internal walkways */}
+                      <line x1="160" y1="480" x2="920" y2="305" stroke="#E2E8F0" strokeWidth="18" strokeLinecap="round"/>
+                      <line x1="160" y1="480" x2="920" y2="305" stroke="#F8FAFC" strokeWidth="14" strokeLinecap="round" opacity="0.95"/>
+                      <text x="420" y="420" fill="#64748B" fontSize="11" fontWeight="800" transform="rotate(-8,420,420)">🚶‍♂️ ทางเดินหลัก (Main Walkway)</text>
 
-                        <line x1="60" y1="560" x2="990" y2="490" stroke="#E2E8F0" strokeWidth="14" strokeLinecap="round"/>
-                        <line x1="60" y1="560" x2="990" y2="490" stroke="#F8FAFC" strokeWidth="10" strokeLinecap="round" opacity="0.9"/>
+                      <line x1="60" y1="560" x2="960" y2="485" stroke="#E2E8F0" strokeWidth="14" strokeLinecap="round"/>
+                      <line x1="60" y1="560" x2="960" y2="485" stroke="#F8FAFC" strokeWidth="10" strokeLinecap="round" opacity="0.95"/>
 
-                        {/* ── ENTRANCE / EXIT ── */}
-                        <polygon points="100,630 125,655 75,655" fill="#EF4444" />
-                        <text x="130" y="652" fill="#EF4444" fontSize="11" fontWeight="800">ENTRANCE</text>
-                        <rect x="880" y="50" width="60" height="22" rx="4" fill="#0A3A2F" opacity="0.8"/>
-                        <text x="887" y="65" fill="#FFFFFF" fontSize="9" fontWeight="700">EXIT (CMU)</text>
-
-                        {/* ── ZONE LABELS ── */}
-                        <text x="105" y="520" fill="#1D4ED8" fontSize="12" fontWeight="800" transform="rotate(-30,105,520)">ZONE A</text>
-                        <text x="210" y="470" fill="#1D4ED8" fontSize="12" fontWeight="800" transform="rotate(-30,210,470)">ZONE B</text>
-                        <text x="400" y="435" fill="#D97706" fontSize="12" fontWeight="800" transform="rotate(-30,400,435)">ZONE C</text>
-                        <text x="575" y="360" fill="#BE185D" fontSize="12" fontWeight="800" transform="rotate(-30,575,360)">ZONE D</text>
-                        <text x="705" y="270" fill="#D97706" fontSize="12" fontWeight="800" transform="rotate(-30,705,270)">ZONE E</text>
-                        <text x="835" y="185" fill="#7C3AED" fontSize="12" fontWeight="800" transform="rotate(-30,835,185)">ZONE F</text>
-                        <text x="85" y="575" fill="#059669" fontSize="12" fontWeight="800">ZONE G</text>
-                        <text x="320" y="545" fill="#059669" fontSize="12" fontWeight="800">ZONE H</text>
-                        <text x="550" y="500" fill="#059669" fontSize="12" fontWeight="800">ZONE I</text>
-
-                        {/* ── FACILITY MARKERS ── */}
-                        <rect x="30" y="50" width="55" height="30" rx="4" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5"/>
-                        <text x="34" y="68" fill="#92400E" fontSize="9" fontWeight="700">🅿️ จอดรถ</text>
-                        <rect x="30" y="90" width="55" height="25" rx="4" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1.5"/>
-                        <text x="36" y="106" fill="#1E40AF" fontSize="9" fontWeight="700">🚻 ห้องน้ำ</text>
-
-                        {/* Render stalls inside rotated group */}
-                        {filteredStalls.map(s => {
-                          const isSelected = selectedStall && selectedStall.id === s.id;
-                          const c = getStallColor(s);
-                          
-                          return (
-                            <g 
-                              key={s.id} 
-                              onClick={() => handleStallClick(s)}
-                              style={{ cursor: s.status === 'MAINTENANCE' ? 'not-allowed' : 'pointer' }}
-                            >
-                              <rect
-                                x={s.x - s.w / 2}
-                                y={s.y - s.h / 2}
-                                width={s.w}
-                                height={s.h}
-                                transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
-                                fill={c.fill}
-                                stroke={isSelected ? '#E77A1F' : c.stroke}
-                                strokeWidth={isSelected ? 3.5 : 1.5}
-                                rx="3"
-                                ry="3"
-                                style={{ transition: 'all 0.15s' }}
-                              />
-                              <text
-                                x={s.x}
-                                y={s.y + 3}
-                                transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
-                                fill={c.text}
-                                fontSize="8"
-                                fontWeight="800"
-                                textAnchor="middle"
-                                style={{ pointerEvents: 'none', userSelect: 'none' }}
-                              >
-                                {s.stall_number}
-                              </text>
-                            </g>
-                          );
-                        })}
+                      {/* ── ENTRANCE / EXIT ── */}
+                      <g transform="translate(100, 626)">
+                        <polygon points="0,0 20,-16 -20,-16" fill="#EF4444" />
+                        <rect x="-35" y="4" width="70" height="18" rx="4" fill="#EF4444" />
+                        <text x="0" y="16" fill="#FFFFFF" fontSize="9" fontWeight="800" textAnchor="middle">ENTRANCE</text>
                       </g>
+                      
+                      <g transform="translate(890, 42)">
+                        <rect x="-35" y="0" width="70" height="20" rx="4" fill="#0A3A2F" />
+                        <text x="0" y="14" fill="#FFFFFF" fontSize="9" fontWeight="800" textAnchor="middle">EXIT (มช.)</text>
+                      </g>
+
+                      {/* ── ZONE LABELS ── */}
+                      <text x="110" y="500" fill="#1D4ED8" fontSize="12" fontWeight="800">ZONE A</text>
+                      <text x="210" y="460" fill="#1D4ED8" fontSize="12" fontWeight="800">ZONE B</text>
+                      <text x="400" y="420" fill="#D97706" fontSize="12" fontWeight="800">ZONE C</text>
+                      <text x="580" y="340" fill="#BE185D" fontSize="12" fontWeight="800">ZONE D</text>
+                      <text x="710" y="250" fill="#B45309" fontSize="12" fontWeight="800">ZONE E</text>
+                      <text x="835" y="165" fill="#7C3AED" fontSize="12" fontWeight="800">ZONE F</text>
+                      <text x="90" y="560" fill="#059669" fontSize="11" fontWeight="800">ZONE G (อาหาร)</text>
+                      <text x="320" y="535" fill="#059669" fontSize="11" fontWeight="800">ZONE H (อาหาร)</text>
+                      <text x="550" y="490" fill="#059669" fontSize="11" fontWeight="800">ZONE I (ของสด)</text>
+
+                      {/* ── FACILITY MARKERS ── */}
+                      <rect x="55" y="50" width="65" height="26" rx="4" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1"/>
+                      <text x="87" y="67" fill="#92400E" fontSize="9" fontWeight="700" textAnchor="middle">🅿️ ที่จอดรถ</text>
+                      <rect x="55" y="85" width="65" height="24" rx="4" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1"/>
+                      <text x="87" y="101" fill="#1E40AF" fontSize="9" fontWeight="700" textAnchor="middle">🚻 ห้องน้ำ</text>
+
+                      {/* Render stalls */}
+                      {filteredStalls.map(s => {
+                        const isSelected = selectedStall && selectedStall.id === s.id;
+                        const c = getStallColor(s);
+                        
+                        return (
+                          <g 
+                            key={s.id} 
+                            onClick={() => handleStallClick(s)}
+                            style={{ cursor: s.status === 'MAINTENANCE' ? 'not-allowed' : 'pointer' }}
+                            filter="url(#stallShadow)"
+                          >
+                            <rect
+                              x={s.x - s.w / 2}
+                              y={s.y - s.h / 2}
+                              width={s.w}
+                              height={s.h}
+                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                              fill={c.fill}
+                              stroke={isSelected ? '#E77A1F' : c.stroke}
+                              strokeWidth={isSelected ? 3 : 1}
+                              rx="3"
+                              ry="3"
+                              className={isSelected ? 'selected-stall' : ''}
+                              style={{ transition: 'all 0.15s' }}
+                            />
+                            <text
+                              x={s.x}
+                              y={s.y + 3}
+                              transform={`rotate(${s.r || 0}, ${s.x}, ${s.y})`}
+                              fill={c.text}
+                              fontSize="8"
+                              fontWeight="800"
+                              textAnchor="middle"
+                              style={{ pointerEvents: 'none', userSelect: 'none' }}
+                            >
+                              {s.stall_number}
+                            </text>
+                          </g>
+                        );
+                      })}
                     </svg>
                   </div>
                 </div>
 
                 {/* Legend */}
-                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748B', alignSelf: 'center', marginRight: 4 }}>สถานะ:</div>
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748B', marginRight: 2 }}>สถานะ:</div>
                   {[
                     { color: '#BBF7D0', border: '#16A34A', label: t.statusBooked },
                     { color: '#FEF08A', border: '#EAB308', label: t.statusPending },
                     { color: '#E2E8F0', border: '#94A3B8', label: t.statusMaintenance },
-                    { color: '#60A5FA', border: '#2563EB', label: `${t.statusAvailable} (Zone A/B)` },
-                    { color: '#FCA5A1', border: '#EF4444', label: `${t.statusAvailable} (Zone C)` },
-                    { color: '#F9A8D4', border: '#EC4899', label: `${t.statusAvailable} (Zone D)` },
-                    { color: '#FDE68A', border: '#F59E0B', label: `${t.statusAvailable} (Zone E)` },
-                    { color: '#6EE7B7', border: '#10B981', label: `${t.statusAvailable} (Zone G-I)` },
+                    { color: '#60A5FA', border: '#2563EB', label: `${t.statusAvailable} (A/B)` },
+                    { color: '#FCA5A1', border: '#EF4444', label: `${t.statusAvailable} (C)` },
+                    { color: '#F9A8D4', border: '#EC4899', label: `${t.statusAvailable} (D)` },
+                    { color: '#FDE68A', border: '#F59E0B', label: `${t.statusAvailable} (E)` },
+                    { color: '#6EE7B7', border: '#10B981', label: `${t.statusAvailable} (G-I)` },
                   ].map((leg, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ width: 12, height: 12, background: leg.color, border: `1.5px solid ${leg.border}`, borderRadius: 2 }} />
-                      <span style={{ fontSize: 10, color: '#475569' }}>{leg.label}</span>
+                      <div style={{ width: 12, height: 12, background: leg.color, border: `1.5px solid ${leg.border}`, borderRadius: 3 }} />
+                      <span style={{ fontSize: 10, color: '#475569', fontWeight: 500 }}>{leg.label}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Detail Panel */}
-              <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '20px', minHeight: 340, display: 'flex', flexDirection: 'column' }}>
+              <div id="stall-detail-panel" style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #E2E8F0', padding: '18px', minHeight: 280, display: 'flex', flexDirection: 'column', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 {!selectedStall ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#64748B', textAlign: 'center', gap: 10 }}>
-                    <div style={{ fontSize: 28 }}>📋</div>
-                    <p style={{ fontSize: 12, margin: 0 }}>{t.clickStallInfo}</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#64748B', textAlign: 'center', gap: 10, padding: '24px 0' }}>
+                    <div style={{ fontSize: 32 }}>🎪</div>
+                    <p style={{ fontSize: 12, margin: 0, fontWeight: 500 }}>{t.clickStallInfo}</p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0A3A2F', margin: 0, paddingBottom: 10, borderBottom: '1px solid #F1F5F9' }}>
-                        Stall: {selectedStall.stall_number}
-                      </h3>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10, borderBottom: '1px solid #F1F5F9' }}>
+                        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0A3A2F', margin: 0 }}>
+                          ล็อก: {selectedStall.stall_number}
+                        </h3>
+                        <button type="button" onClick={() => setSelectedStall(null)} style={{ background: '#F1F5F9', border: 'none', borderRadius: 6, padding: '3px 8px', fontSize: 11, cursor: 'pointer', color: '#64748B' }}>
+                          ✕ ปิด
+                        </button>
+                      </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1134,7 +1162,7 @@ export default function MalinMarket() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: '#64748B' }}>{t.rent}</span>
-                          <strong style={{ color: '#1E293B' }}>฿{selectedStall.price} / วัน</strong>
+                          <strong style={{ color: '#0F382E', fontSize: 14 }}>฿{selectedStall.price} / วัน</strong>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: '#64748B' }}>{t.status}</span>
@@ -1145,7 +1173,7 @@ export default function MalinMarket() {
                             color: selectedStall.status === 'AVAILABLE' ? '#D97706' : 
                                    selectedStall.status === 'PENDING' ? '#78350F' : 
                                    selectedStall.status === 'BOOKED' ? '#10B981' : '#475569',
-                            padding: '2px 8px', borderRadius: 12, fontWeight: 700, fontSize: 10
+                            padding: '3px 10px', borderRadius: 12, fontWeight: 700, fontSize: 11
                           }}>
                             {selectedStall.status === 'AVAILABLE' ? t.statusAvailable :
                              selectedStall.status === 'PENDING' ? t.statusPending :
@@ -1164,7 +1192,8 @@ export default function MalinMarket() {
 
                     {selectedStall.status === 'AVAILABLE' && (
                       <button onClick={() => setShowBookingForm(true)} style={{
-                        background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 10, width: '100%'
+                        background: '#0F382E', color: '#FFFFFF', border: 'none', borderRadius: 8, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginTop: 10, width: '100%',
+                        boxShadow: '0 4px 12px rgba(15, 56, 46, 0.2)'
                       }}>{t.bookBtn}</button>
                     )}
                   </div>
